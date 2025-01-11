@@ -9,6 +9,8 @@
 #include "ha/discovery.h"
 #include "mqtt/mqtt.h"
 #include "network/network.h"
+#include "state/producer.h"
+#include "state/state_mgr.h"
 #include "relay/relay.h"
 #include "web/handler.h"
 
@@ -20,6 +22,8 @@ DiscoveryMgr discoveryMgr(configMgr.getConfig());
 Relay waterRelay(&discoveryMgr);
 Relay drawingRelay(&discoveryMgr);
 CommandConsumer commandConsumer(&waterRelay, &drawingRelay);
+StateProducer stateProducer(&mqtt);
+StateMgr stateMgr(&stateProducer);
 
 void setup()
 {
@@ -47,6 +51,8 @@ void setup()
     mqtt.init();
     mqtt.subscribe(&commandConsumer);
 
+    stateProducer.init(configMgr.getConfig().mqttStateTopic);
+
     handler.init();
 
     discoveryMgr.init([](std::string topicName, std::string payload) {
@@ -61,7 +67,14 @@ void setup()
         ->setManufacturer(deviceManufacturer);
 
     waterRelay.init(device, "Water close", "waterClose", RELAY_WATER_VALVE, false, configMgr.getConfig().mqttStateTopic, configMgr.getConfig().mqttCommandTopic);
+    waterRelay.onActivate([](bool isOn) {
+        stateMgr.setWaterRelayClosed(isOn);
+    });
+
     drawingRelay.init(device, "Drawing", "drawing", RELAY_DRAWING, false, configMgr.getConfig().mqttStateTopic, configMgr.getConfig().mqttCommandTopic);
+    drawingRelay.onActivate([](bool isOn) {
+        stateMgr.setDrawingRelayOn(isOn);
+    });
 
     ESP_LOGI("setup", "complete");
 }

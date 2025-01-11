@@ -45,9 +45,9 @@ public:
         return this;
     }
 
-    Switch* setStateTemplate(std::string stateTemplate)
+    Switch* setValueTemplate(std::string valueTemplate)
     {
-        _stateTemplate = stateTemplate;
+        _valueTemplate = valueTemplate;
 
         return this;
     }
@@ -87,7 +87,7 @@ private:
     std::string _commandTopic = "";
     std::string _commandTemplate = "";
     std::string _stateTopic = "";
-    std::string _stateTemplate = "";
+    std::string _valueTemplate = "";
     std::string _payloadOn = "";
     std::string _payloadOff = "";
     std::string _stateOn = "";

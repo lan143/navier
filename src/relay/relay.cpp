@@ -27,8 +27,7 @@ void Relay::activate(bool isOn)
 
 void Relay::buildDiscovery(Device* device, std::string name, std::string id, std::string stateTopic, std::string commandTopic)
 {
-    std::string commandPayloadOn = formatString("{\"%sRelay\": true }", id.c_str());
-    std::string commandPayloadOff = formatString("{\"%sRelay\": false }", id.c_str());
+    std::string commandTemplate = formatString("{\"%sRelay\": {{ value }} }", id.c_str());
     std::string stateTemplate = formatString("{{ value_json.%sRelay }}", id.c_str());
     std::string uniqueId = formatString("%s_relay_navier", id.c_str());
 
@@ -38,9 +37,12 @@ void Relay::buildDiscovery(Device* device, std::string name, std::string id, std
         id,
         uniqueId
     )
+        ->setCommandTemplate(commandTemplate)
         ->setCommandTopic(commandTopic)
         ->setStateTopic(stateTopic)
-        ->setStateTemplate(stateTemplate)
-        ->setPayloadOn(commandPayloadOn)
-        ->setPayloadOff(commandPayloadOff);
+        ->setValueTemplate(stateTemplate)
+        ->setPayloadOn("true")
+        ->setPayloadOff("false")
+        ->setStateOn("true")
+        ->setStateOff("false");
 }

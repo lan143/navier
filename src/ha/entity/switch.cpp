@@ -22,8 +22,8 @@ std::string Switch::marshalJSON()
             entity[F("state_topic")] = _stateTopic;
         }
 
-        if (_stateTemplate.length() > 0) {
-            entity[F("state_template")] = _stateTemplate;
+        if (_valueTemplate.length() > 0) {
+            entity[F("value_template")] = _valueTemplate;
         }
 
         if (_payloadOn.length() > 0) {
