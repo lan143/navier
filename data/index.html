@@ -1,0 +1,142 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="description" content="">
+
+        <title>Navier</title>
+
+        <link href="bootstrap.min.css" rel="stylesheet">
+
+        <meta name="theme-color" content="#7952b3">
+    </head>
+
+    <body>
+        <main>
+            <nav class="navbar navbar-expand-lg bg-body-tertiary">
+                <div class="container-fluid">
+                    <a class="navbar-brand" href="/">Navier</a>
+                    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+                        <span class="navbar-toggler-icon"></span>
+                    </button>
+                    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+                        <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+                            <li class="nav-item">
+                                <a class="nav-link active" aria-current="page" href="#statistic">Statistic</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" href="#settings">Settings</a>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </nav>
+
+            <div class="container-sm" id="statistic">
+                <div class="row">
+                    <div class="col-sm-12">
+                        <label class="col-sm-2 col-form-label">WiFi status:</label>
+                        <div class="col-sm-10">
+                            <label id="wifi-status">Loading...</label>
+                        </div>
+
+                        <label class="col-sm-2 col-form-label">Uptime:</label>
+                        <div class="col-sm-10">
+                            <label id="uptime">Loading...</label>
+                        </div>
+
+                        <label class="col-sm-2 col-form-label">Free heap:</label>
+                        <div class="col-sm-10">
+                            <label id="freeHeap">Loading...</label>
+                        </div>
+
+                        <label class="col-sm-2 col-form-label">Last reset reason:</label>
+                        <div class="col-sm-10">
+                            <label id="lastResetReason">Loading...</label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="container-sm" id="settings" style="display: none;">
+                <div class="row">
+                    <div class="col-sm-6">
+                        <h1>WiFi Settings</h1>
+                        <form id="wifi">
+                            <div class="mb-3">
+                                <label for="wiFiSSID" class="form-label">WiFi SSID</label>
+                                <input type="text" name="wifi-ssid" class="form-control" id="wiFiSSID">
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="wiFiSSIDPassword" class="form-label">WiFi Password</label>
+                                <input type="password" class="form-control" name="wifi-password" id="wiFiSSIDPassword">
+                            </div>
+
+                            <div class="mb-12">
+                                <button type="submit" class="btn btn-primary">Save</button>
+                            </div>
+                        </form>
+                    </div>
+
+                    <div class="col-sm-6">
+                        <h1>MQTT Settings</h1>
+
+                        <form id="mqtt">
+                            <div class="mb-3">
+                                <label for="mqttHost" class="form-label">Host</label>
+                                <input type="text" class="form-control" name="mqttHost" id="mqttHost">
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="mqttPort" class="form-label">Port</label>
+                                <input type="number" class="form-control" name="mqttPort" id="mqttPort">
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="mqttLogin" class="form-label">Login</label>
+                                <input type="text" class="form-control" name="mqttLogin" id="mqttLogin">
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="mqttPassword" class="form-label">Password</label>
+                                <input type="password" class="form-control" name="mqttPassword" id="mqttPassword">
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="mqttCommandTopic" class="form-label">Command topic</label>
+                                <input type="text" class="form-control" name="mqttCommandTopic" id="mqttCommandTopic">
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="mqttStateTopic" class="form-label">State topic</label>
+                                <input type="text" class="form-control" name="mqttStateTopic" id="mqttStateTopic">
+                            </div>
+
+                            <div class="mb-3">
+                                <input class="form-check-input" type="checkbox" value="" name="mqttIsHADiscovery" id="flexCheckDefault">
+                                <label class="form-check-label" for="flexCheckDefault">
+                                    Enable Home Assistant auto discovery
+                                </label>
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="mqttHADiscoveryPrefix" class="form-label">HomeAssistant discovery prefix</label>
+                                <input type="text" class="form-control" name="mqttHADiscoveryPrefix" id="mqttHADiscoveryPrefix">
+                            </div>
+
+                            <div class="mb-12">
+                                <button type="submit" class="btn btn-primary">Save</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <script src="jquery-3.6.0.min.js"></script>
+        <script src="bootstrap.min.js"></script>
+        <script src="index.js"></script>
+    </body>
+</html>
