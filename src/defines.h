@@ -12,6 +12,10 @@
 #define RELAY_WATER_VALVE 15
 #define RELAY_DRAWING 2
 
+#define METER_PIN 36
+
+#define EEPROM_SIZE 2048
+
 const char deviceName[] = "Navier";
 const char deviceModel[] = "KC868-A2";
 const char deviceManufacturer[] = "Kincony";

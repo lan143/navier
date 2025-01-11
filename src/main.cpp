@@ -7,6 +7,8 @@
 #include "config.h"
 #include "command/command_consumer.h"
 #include "ha/discovery.h"
+#include "meter/meter.h"
+#include "meter/storage.h"
 #include "mqtt/mqtt.h"
 #include "network/network.h"
 #include "state/producer.h"
@@ -14,7 +16,7 @@
 #include "relay/relay.h"
 #include "web/handler.h"
 
-EDConfig::ConfigMgr<Config> configMgr;
+EDConfig::ConfigMgr<Config> configMgr(EEPROM_SIZE);
 NetworkMgr networkMgr(configMgr.getConfig(), true);
 MQTT mqtt(configMgr.getConfig(), &networkMgr);
 Handler handler(&configMgr, &networkMgr);
@@ -24,6 +26,12 @@ Relay drawingRelay(&discoveryMgr);
 CommandConsumer commandConsumer(&waterRelay, &drawingRelay);
 StateProducer stateProducer(&mqtt);
 StateMgr stateMgr(&stateProducer);
+RingStorage ringStorage;
+Meter meter(&ringStorage);
+
+void IRAM_ATTR ISR() {
+    meter.count();
+}
 
 void setup()
 {
@@ -43,6 +51,11 @@ void setup()
         snprintf(config.mqttHADiscoveryPrefix, MQTT_TOPIC_LEN, "homeassistant");
     });
     configMgr.load();
+
+    ringStorage.init();
+    meter.init();
+    pinMode(METER_PIN, INPUT_PULLUP);
+    attachInterrupt(METER_PIN, ISR, RISING);
 
     networkMgr.init();
 
@@ -84,4 +97,5 @@ void loop()
     mqtt.loop();
     networkMgr.loop();
     discoveryMgr.loop();
+    meter.loop();
 }
