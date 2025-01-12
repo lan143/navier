@@ -9,27 +9,13 @@ class Meter
 public:
     Meter(DiscoveryMgr* discoveryMgr, RingStorage* ringStorage, StateMgr *stateMgr) : _discoveryMgr(discoveryMgr), _stateMgr(stateMgr), _ringStorage(ringStorage) {}
 
-    void init(Device* device, std::string stateTopic)
-    {
-        _currentValue = _ringStorage->getCurrentValue();
-        buildDiscovery(device, stateTopic);
-    }
+    void init(Device* device, std::string stateTopic);
+    void count();
+    void loop();
 
     void setInitialValue(float_t value);
     float_t getCurrentValue() { return toMeterCube(_currentValue); }
 
-    void count()
-    {
-        if (_lastUpCounterTime + 500 > millis()) {
-            return;
-        }
-
-        _currentValue++;
-        _hasNewValue = true;
-        _lastUpCounterTime = millis();
-    }
-
-    void loop();
 
 private:
     void buildDiscovery(Device* device, std::string stateTopic);
@@ -42,8 +28,7 @@ private:
     StateMgr* _stateMgr;
 
 private:
-    uint32_t _currentValue;
+    volatile uint32_t _currentValue;
     bool _hasNewValue;
-    uint64_t _lastUpCounterTime;
     uint64_t _lastCheckTime;
 };

@@ -1,5 +1,18 @@
 #include "meter.h"
 
+void Meter::init(Device* device, std::string stateTopic)
+{
+    _currentValue = _ringStorage->getCurrentValue();
+    buildDiscovery(device, stateTopic);
+    _stateMgr->setWaterConsumption(toMeterCube(_currentValue));
+}
+
+void Meter::count()
+{
+    _currentValue++;
+    _hasNewValue = true;
+}
+
 void Meter::loop()
 {
     if (_lastCheckTime + 500 < millis()) {

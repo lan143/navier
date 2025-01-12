@@ -31,6 +31,12 @@ Meter meter(&discoveryMgr, &ringStorage, &stateMgr);
 Handler handler(&configMgr, &meter, &networkMgr);
 
 void IRAM_ATTR ISR() {
+    for (int i = 0; i < 3; i++) {
+        if (digitalRead(METER_PIN) != LOW) {
+            return;
+        }
+    }
+
     meter.count();
 }
 
@@ -81,7 +87,7 @@ void setup()
     ringStorage.init();
     meter.init(device, configMgr.getConfig().mqttStateTopic);
     pinMode(METER_PIN, INPUT_PULLUP);
-    attachInterrupt(METER_PIN, ISR, RISING);
+    attachInterrupt(METER_PIN, ISR, CHANGE);
 
     waterRelay.init(device, "Water close", "waterClose", RELAY_WATER_VALVE, false, configMgr.getConfig().mqttStateTopic, configMgr.getConfig().mqttCommandTopic);
     waterRelay.onActivate([](bool isOn) {

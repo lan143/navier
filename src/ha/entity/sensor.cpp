@@ -21,13 +21,13 @@ std::string Sensor::marshalJSON()
 
         switch (_sensorStateClass) {
             case SENSOR_STATE_CLASS_MEASUREMENT:
-                entity[F("sensor_state_class")] = "MEASUREMENT";
+                entity[F("state_class")] = "measurement";
                 break;
             case SENSOR_STATE_CLASS_TOTAL:
-                entity[F("sensor_state_class")] = "TOTAL";
+                entity[F("state_class")] = "total";
                 break;
             case SENSOR_STATE_CLASS_TOTAL_INCREASING:
-                entity[F("sensor_state_class")] = "TOTAL_INCREASING";
+                entity[F("state_class")] = "total_increasing";
                 break;
         }
 
