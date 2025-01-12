@@ -27,7 +27,7 @@ CommandConsumer commandConsumer(&waterRelay, &drawingRelay);
 StateProducer stateProducer(&mqtt);
 StateMgr stateMgr(&stateProducer);
 RingStorage ringStorage;
-Meter meter(&ringStorage);
+Meter meter(&discoveryMgr, &ringStorage, &stateMgr);
 
 void IRAM_ATTR ISR() {
     meter.count();
@@ -52,11 +52,6 @@ void setup()
     });
     configMgr.load();
 
-    ringStorage.init();
-    meter.init();
-    pinMode(METER_PIN, INPUT_PULLUP);
-    attachInterrupt(METER_PIN, ISR, RISING);
-
     networkMgr.init();
 
     commandConsumer.init(configMgr.getConfig().mqttCommandTopic);
@@ -78,6 +73,11 @@ void setup()
         ->setModel(deviceModel)
         ->setName(deviceName)
         ->setManufacturer(deviceManufacturer);
+
+    ringStorage.init();
+    meter.init(device, configMgr.getConfig().mqttStateTopic);
+    pinMode(METER_PIN, INPUT_PULLUP);
+    attachInterrupt(METER_PIN, ISR, RISING);
 
     waterRelay.init(device, "Water close", "waterClose", RELAY_WATER_VALVE, false, configMgr.getConfig().mqttStateTopic, configMgr.getConfig().mqttCommandTopic);
     waterRelay.onActivate([](bool isOn) {

@@ -20,9 +20,16 @@ public:
         publishState();
     }
 
+    void setWaterConsumption(float_t waterConsumption)
+    {
+        _waterConsumption = waterConsumption;
+        publishState();
+    }
+
 private:
     bool _waterRelayClosed = false;
     bool _drawingRelayOn = false;
+    float_t _waterConsumption = 0;
 
 private:
     State buildState();

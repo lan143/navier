@@ -4,7 +4,8 @@ State StateMgr::buildState()
 {
     return State(
         _waterRelayClosed,
-        _drawingRelayOn
+        _drawingRelayOn,
+        _waterConsumption
     );
 }
 

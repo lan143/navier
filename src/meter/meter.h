@@ -1,15 +1,18 @@
 #pragma once
 
+#include "ha/discovery.h"
+#include "state/state_mgr.h"
 #include "storage.h"
 
 class Meter
 {
 public:
-    Meter(RingStorage* ringStorage) : _ringStorage(ringStorage) {}
+    Meter(DiscoveryMgr* discoveryMgr, RingStorage* ringStorage, StateMgr *stateMgr) : _discoveryMgr(discoveryMgr), _stateMgr(stateMgr), _ringStorage(ringStorage) {}
 
-    void init()
+    void init(Device* device, std::string stateTopic)
     {
         _currentValue = _ringStorage->getCurrentValue();
+        buildDiscovery(device, stateTopic);
     }
 
     void count()
@@ -26,7 +29,13 @@ public:
     void loop();
 
 private:
+    void buildDiscovery(Device* device, std::string stateTopic);
+    float_t toMeterCube(int value);
+
+private:
+    DiscoveryMgr* _discoveryMgr;
     RingStorage* _ringStorage;
+    StateMgr* _stateMgr;
 
 private:
     uint32_t _currentValue;

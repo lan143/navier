@@ -55,7 +55,7 @@ protected:
     std::string _prefix = "";
     std::string _name = "";
     Device* _device = NULL;
-    EntityCategory _entityCategory = ENTITY_CATEGORY_CONFIG;
+    EntityCategory _entityCategory = ENTITY_CATEGORY_NONE;
     std::string _objectID = "";
     std::string _uniqueID = "";
     bool _forceUpdate = false;

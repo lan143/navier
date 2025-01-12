@@ -5,10 +5,10 @@
 void RingStorage::init()
 {
     EEPROM.begin(EEPROM_SIZE);
-    uint32_t maxValue;
-    uint32_t prevValue;
+    uint32_t maxValue = 0;
+    uint32_t prevValue = 0;
     bool needClear = true;
-    int maxAddress;
+    int maxAddress = 0;
     
     for (int i = 0; i < RING_STORAGE_SIZE; i++) {
         int address = getAddress(i);
@@ -20,13 +20,13 @@ void RingStorage::init()
             needClear = false;
         }
 
-        prevValue = value;
-
-        if (value > maxValue) {
+        if (value > maxValue && prevValue + 1 == value) {
             ESP_LOGD("ring-storage", "found new max value (%d). address: %d", value, i);
             maxValue = value;
             maxAddress = i;
         }
+
+        prevValue = value;
     }
 
     EEPROM.end();
