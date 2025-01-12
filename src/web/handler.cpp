@@ -47,6 +47,7 @@ void Handler::init()
             entity["mqttHADiscoveryPrefix"] = config.mqttHADiscoveryPrefix;
             entity["mqttCommandTopic"] = config.mqttCommandTopic;
             entity["mqttStateTopic"] = config.mqttStateTopic;
+            entity["initialValue"] = _meter->getCurrentValue();
         });
 
         response->write(payload.c_str());
@@ -165,6 +166,24 @@ void Handler::init()
     });
 
     _server->on("/api/settings", HTTP_POST, [this](AsyncWebServerRequest *request) {
+        if (
+            !request->hasParam("initialValue", true)
+        ) {
+            request->send(422, "application/json", "{\"message\": \"not present params in request\"}");
+            return;
+        }
+
+        AsyncWebParameter* paraminitialValue = request->getParam("initialValue", true);
+
+        float_t initialValue;
+        if (EDUtils::str2float(&initialValue, paraminitialValue->value().c_str()) != EDUtils::STR2INT_SUCCESS) {
+            request->send(422, "application/json", "{\"message\": \"Incorrect initialValue\"}");
+            return;
+        }
+
+        _meter->setInitialValue(initialValue);
+
+        request->send(200, "application/json", "{}");
     });
 
     _server->on("/api/status", HTTP_GET, [this](AsyncWebServerRequest *request) {

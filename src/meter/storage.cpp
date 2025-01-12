@@ -5,19 +5,24 @@
 void RingStorage::init()
 {
     EEPROM.begin(EEPROM_SIZE);
-    uint32_t maxValue = 0;
-    uint32_t prevValue = 0;
-    bool needClear = true;
+
+    uint32_t prevValue = EEPROM.readUInt(getAddress(0));
+    uint32_t maxValue = prevValue;
+    bool needClear = false;
     int maxAddress = 0;
-    
-    for (int i = 0; i < RING_STORAGE_SIZE; i++) {
+
+    if (maxValue == -1) {
+        needClear = true;
+    }
+
+    for (int i = 1; i < RING_STORAGE_SIZE; i++) {
         int address = getAddress(i);
         uint32_t value = EEPROM.readUInt(address);
 
         ESP_LOGD("ring-storage", "%d: %d", i, value);
 
-        if (i != 0 && prevValue != value && value != 0) {
-            needClear = false;
+        if (value == -1) {
+            needClear = true;
         }
 
         if (value > maxValue && prevValue + 1 == value) {

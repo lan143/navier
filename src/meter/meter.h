@@ -15,6 +15,9 @@ public:
         buildDiscovery(device, stateTopic);
     }
 
+    void setInitialValue(float_t value);
+    float_t getCurrentValue() { return toMeterCube(_currentValue); }
+
     void count()
     {
         if (_lastUpCounterTime + 500 > millis()) {
@@ -30,6 +33,7 @@ public:
 
 private:
     void buildDiscovery(Device* device, std::string stateTopic);
+    int fromMeterCube(float_t value);
     float_t toMeterCube(int value);
 
 private:

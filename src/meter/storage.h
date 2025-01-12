@@ -11,10 +11,10 @@ public:
     void init();
     void writeValue(uint32_t value);
     uint32_t getCurrentValue() { return _currentValue; }
+    void clear();
 
 private:
     int getAddress(int n);
-    void clear();
 
 private:
     int _ptr = 0;

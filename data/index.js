@@ -32,6 +32,8 @@ function loadSettings() {
             if (data.mqttIsHADiscovery) {
                 $('form#mqtt input[name=mqttIsHADiscovery]').prop('checked', true);
             }
+
+            $('form#settings input[name=initialValue]').val(data.initialValue);
         },
         error: function (xhr, str) {
             alert('Errors while loading settings');
@@ -109,7 +111,6 @@ $(function() {
         return false;
     });
 
-
     $('form#mqtt').submit(function(event) {
         event.preventDefault();
 
@@ -135,6 +136,28 @@ $(function() {
                     url: '/api/reboot',
                     dataType: 'json'
                 });
+            },
+            error: function (xhr, str) {
+                var data = JSON.parse(xhr.responseText);
+                alert('Errors while save settings: ' + data.message);
+            }
+        });
+
+        return false;
+    });
+
+    $('form#settings').submit(function(event) {
+        event.preventDefault();
+
+        $.ajax({
+            type: 'POST',
+            url: '/api/settings',
+            dataType: 'json',
+            data: {
+                initialValue: $(this).find('input[name=initialValue]').val()
+            },
+            success: function (data) {
+                alert('Settings successful changed.');
             },
             error: function (xhr, str) {
                 var data = JSON.parse(xhr.responseText);

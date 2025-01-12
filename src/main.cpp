@@ -19,7 +19,6 @@
 EDConfig::ConfigMgr<Config> configMgr(EEPROM_SIZE);
 NetworkMgr networkMgr(configMgr.getConfig(), true);
 MQTT mqtt(configMgr.getConfig(), &networkMgr);
-Handler handler(&configMgr, &networkMgr);
 DiscoveryMgr discoveryMgr(configMgr.getConfig());
 Relay waterRelay(&discoveryMgr);
 Relay drawingRelay(&discoveryMgr);
@@ -28,6 +27,7 @@ StateProducer stateProducer(&mqtt);
 StateMgr stateMgr(&stateProducer);
 RingStorage ringStorage;
 Meter meter(&discoveryMgr, &ringStorage, &stateMgr);
+Handler handler(&configMgr, &meter, &networkMgr);
 
 void IRAM_ATTR ISR() {
     meter.count();

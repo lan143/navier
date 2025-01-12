@@ -10,14 +10,16 @@
 #include <ConfigMgr.h>
 
 #include "config.h"
+#include "meter/meter.h"
 #include "network/network.h"
 
 class Handler {
 public:
     Handler(
         EDConfig::ConfigMgr<Config>* configMgr,
+        Meter* meter,
         NetworkMgr* networkMgr
-    ) : _configMgr(configMgr), _networkMgr(networkMgr) {
+    ) : _configMgr(configMgr), _meter(meter), _networkMgr(networkMgr) {
         _server = new AsyncWebServer(80);
     }
 
@@ -26,5 +28,6 @@ public:
 private:
     AsyncWebServer* _server;
     EDConfig::ConfigMgr<Config>* _configMgr;
+    Meter* _meter;
     NetworkMgr* _networkMgr;
 };

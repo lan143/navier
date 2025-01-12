@@ -14,6 +14,14 @@ void Meter::loop()
     }
 }
 
+void Meter::setInitialValue(float_t value)
+{
+    _ringStorage->clear();
+    _currentValue = fromMeterCube(value);
+    _ringStorage->writeValue(_currentValue);
+    _hasNewValue = false;
+}
+
 void Meter::buildDiscovery(Device* device, std::string stateTopic)
 {
     _discoveryMgr->addSensor(
@@ -27,6 +35,11 @@ void Meter::buildDiscovery(Device* device, std::string stateTopic)
         ->setUnitOfMeasurement("m³")
         ->setSensorStateClass(SENSOR_STATE_CLASS_TOTAL)
         ->setDeviceClass("water");
+}
+
+int Meter::fromMeterCube(float_t value)
+{
+    return (int)((value * 1000) / 10);
 }
 
 float_t Meter::toMeterCube(int value)
