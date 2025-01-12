@@ -1,4 +1,5 @@
 #include <Arduino.h>
+#include <ArduinoOTA.h>
 #include <SPIFFS.h>
 #include <ConfigMgr.h>
 #include <esp_log.h>
@@ -54,6 +55,9 @@ void setup()
 
     networkMgr.init();
 
+    ArduinoOTA.setPassword("somestrongpassword");
+    ArduinoOTA.begin();
+
     commandConsumer.init(configMgr.getConfig().mqttCommandTopic);
 
     mqtt.init();
@@ -98,4 +102,5 @@ void loop()
     networkMgr.loop();
     discoveryMgr.loop();
     meter.loop();
+    ArduinoOTA.handle();
 }
