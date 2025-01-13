@@ -10,7 +10,6 @@ public:
     Meter(DiscoveryMgr* discoveryMgr, RingStorage* ringStorage, StateMgr *stateMgr) : _discoveryMgr(discoveryMgr), _stateMgr(stateMgr), _ringStorage(ringStorage) {}
 
     void init(Device* device, std::string stateTopic);
-    void count();
     void loop();
 
     void setInitialValue(float_t value);
@@ -28,7 +27,8 @@ private:
     StateMgr* _stateMgr;
 
 private:
-    volatile uint32_t _currentValue;
-    bool _hasNewValue;
+    bool _lock;
+    bool _ponentialCount;
+    uint32_t _currentValue;
     uint64_t _lastCheckTime;
 };

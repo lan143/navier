@@ -9,8 +9,9 @@ class RingStorage
 {
 public:
     void init();
-    void writeValue(uint32_t value);
-    uint32_t getCurrentValue() { return _currentValue; }
+    void writeValue(uint32_t value, bool hasLock);
+    uint32_t getCurrentValue() { return _currentValue & 0x7FFFFFFF; }
+    bool hasLock() { return (_currentValue & 0x80000000) > 0; }
     void clear();
 
 private:

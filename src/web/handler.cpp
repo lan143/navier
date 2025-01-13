@@ -47,7 +47,7 @@ void Handler::init()
             entity["mqttHADiscoveryPrefix"] = config.mqttHADiscoveryPrefix;
             entity["mqttCommandTopic"] = config.mqttCommandTopic;
             entity["mqttStateTopic"] = config.mqttStateTopic;
-            entity["initialValue"] = _meter->getCurrentValue();
+            entity["initialValue"] = _stateMgr->getWaterConsumption();
         });
 
         response->write(payload.c_str());

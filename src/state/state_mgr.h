@@ -26,10 +26,12 @@ public:
         publishState();
     }
 
+    float_t getWaterConsumption() { return _waterConsumption; }
+
 private:
     bool _waterRelayClosed = false;
     bool _drawingRelayOn = false;
-    float_t _waterConsumption = 0;
+    float_t _waterConsumption = 0.0f;
 
 private:
     State buildState();

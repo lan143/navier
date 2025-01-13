@@ -1,26 +1,35 @@
+#include <esp_log.h>
 #include "meter.h"
 
 void Meter::init(Device* device, std::string stateTopic)
 {
+    pinMode(METER_PIN, INPUT);
+
     _currentValue = _ringStorage->getCurrentValue();
+    _lock = _ringStorage->hasLock();
     buildDiscovery(device, stateTopic);
     _stateMgr->setWaterConsumption(toMeterCube(_currentValue));
 }
 
-void Meter::count()
-{
-    _currentValue++;
-    _hasNewValue = true;
-}
-
 void Meter::loop()
 {
-    if (_lastCheckTime + 500 < millis()) {
-        if (_hasNewValue) {
-            _ringStorage->writeValue(_currentValue);
-            _hasNewValue = false;
+    if ((_lastCheckTime + 250) < millis()) {
+        int pinValue = digitalRead(METER_PIN);
 
-            _stateMgr->setWaterConsumption(toMeterCube(_currentValue));
+        if (pinValue == LOW && !_lock) {
+            if (!_ponentialCount) {
+                _ponentialCount = true;
+            } else {
+                _ponentialCount = false;
+                _lock = true;
+                _currentValue++;
+
+                _ringStorage->writeValue(_currentValue, _lock);
+                _stateMgr->setWaterConsumption(toMeterCube(_currentValue));
+            }
+        } else if (pinValue == HIGH && _lock) {
+            _lock = false;
+            _ringStorage->writeValue(_currentValue, _lock);
         }
 
         _lastCheckTime = millis();
@@ -31,8 +40,7 @@ void Meter::setInitialValue(float_t value)
 {
     _ringStorage->clear();
     _currentValue = fromMeterCube(value);
-    _ringStorage->writeValue(_currentValue);
-    _hasNewValue = false;
+    _ringStorage->writeValue(_currentValue, _lock);
 }
 
 void Meter::buildDiscovery(Device* device, std::string stateTopic)
