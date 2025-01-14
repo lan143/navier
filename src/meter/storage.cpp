@@ -7,12 +7,16 @@ void RingStorage::init()
     EEPROM.begin(EEPROM_SIZE);
 
     uint32_t prevValue = EEPROM.readUInt(getAddress(0));
+    bool maxValueHasLock = (prevValue & 0x80000000) > 0;
+    if (maxValueHasLock) {
+        prevValue &= 0x7FFFFFFF;
+    }
+
     uint32_t maxValue = prevValue;
-    bool maxValueHasLock;
     bool needClear = false;
     int maxAddress = 0;
 
-    if (maxValue == -1) {
+    if (maxValue == 0xFFFFFFFF) {
         needClear = true;
     }
 
@@ -26,7 +30,7 @@ void RingStorage::init()
 
         ESP_LOGD("ring-storage", "%d: %d", i, value);
 
-        if (value == -1) {
+        if (value == 0xFFFFFFFF) {
             needClear = true;
         }
 

@@ -27,8 +27,8 @@ private:
     StateMgr* _stateMgr;
 
 private:
-    bool _lock;
-    bool _ponentialCount;
+    bool _lock = false;
+    bool _ponentialLockUnlock = false;
     uint32_t _currentValue;
     uint64_t _lastCheckTime;
 };

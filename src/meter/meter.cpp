@@ -17,10 +17,10 @@ void Meter::loop()
         int pinValue = digitalRead(METER_PIN);
 
         if (pinValue == LOW && !_lock) {
-            if (!_ponentialCount) {
-                _ponentialCount = true;
+            if (!_ponentialLockUnlock) {
+                _ponentialLockUnlock = true;
             } else {
-                _ponentialCount = false;
+                _ponentialLockUnlock = false;
                 _lock = true;
                 _currentValue++;
 
@@ -28,8 +28,13 @@ void Meter::loop()
                 _stateMgr->setWaterConsumption(toMeterCube(_currentValue));
             }
         } else if (pinValue == HIGH && _lock) {
-            _lock = false;
-            _ringStorage->writeValue(_currentValue, _lock);
+            if (!_ponentialLockUnlock) {
+                _ponentialLockUnlock = true;
+            } else {
+                _ponentialLockUnlock = false;
+                _lock = false;
+                _ringStorage->writeValue(_currentValue, _lock);
+            }
         }
 
         _lastCheckTime = millis();
