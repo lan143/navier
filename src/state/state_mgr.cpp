@@ -5,7 +5,9 @@ State StateMgr::buildState()
     return State(
         _waterRelayClosed,
         _drawingRelayOn,
-        _waterConsumption
+        _waterConsumption,
+        _shelftLightSwitch,
+        _shelftBrightness
     );
 }
 

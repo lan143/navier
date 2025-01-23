@@ -13,6 +13,7 @@
 #define RELAY_DRAWING 15
 
 #define METER_PIN 36
+#define LED_PIN 33
 
 #define EEPROM_SIZE 2048
 

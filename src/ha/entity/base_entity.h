@@ -8,55 +8,58 @@
 #include "ha/enum/entity_category.h"
 #include "utils/ext_strings.h"
 
-class Base
+namespace EDHA
 {
-public:
-    Base(
-        Device* device,
-        std::string type,
-        std::string prefix,
-        std::string objectID,
-        std::string uniqueID
-    ) : _device(device), _type(type), _prefix(prefix), _objectID(objectID), _uniqueID(uniqueID) { }
-
-    virtual std::string marshalJSON() = 0;
-
-    std::string getTopicName() const
+    class Base
     {
-        return formatString("%s/%s/%s/%s/config", _prefix.c_str(), _type.c_str(), _uniqueID.c_str(), _objectID.c_str());
-    }
+    public:
+        Base(
+            Device* device,
+            std::string type,
+            std::string prefix,
+            std::string objectID,
+            std::string uniqueID
+        ) : _device(device), _type(type), _prefix(prefix), _objectID(objectID), _uniqueID(uniqueID) { }
 
-    Base* setName(std::string name)
-    {
-        _name = name;
+        virtual std::string marshalJSON() = 0;
 
-        return this;
-    }
+        std::string getTopicName() const
+        {
+            return formatString("%s/%s/%s/%s/config", _prefix.c_str(), _type.c_str(), _uniqueID.c_str(), _objectID.c_str());
+        }
 
-    Base* setEntityCategory(EntityCategory entityCategory)
-    {
-        _entityCategory = entityCategory;
+        Base* setName(std::string name)
+        {
+            _name = name;
 
-        return this;
-    }
+            return this;
+        }
 
-    Base* setForceUpdate(bool forceUpdate)
-    {
-        _forceUpdate = forceUpdate;
+        Base* setEntityCategory(EntityCategory entityCategory)
+        {
+            _entityCategory = entityCategory;
 
-        return this;
-    }
+            return this;
+        }
 
-protected:
-    void buildBaseField(JsonObject entity);
+        Base* setForceUpdate(bool forceUpdate)
+        {
+            _forceUpdate = forceUpdate;
 
-protected:
-    std::string _type = "";
-    std::string _prefix = "";
-    std::string _name = "";
-    Device* _device = NULL;
-    EntityCategory _entityCategory = ENTITY_CATEGORY_NONE;
-    std::string _objectID = "";
-    std::string _uniqueID = "";
-    bool _forceUpdate = false;
-};
+            return this;
+        }
+
+    protected:
+        void buildBaseField(JsonObject entity);
+
+    protected:
+        std::string _type = "";
+        std::string _prefix = "";
+        std::string _name = "";
+        Device* _device = NULL;
+        EntityCategory _entityCategory = ENTITY_CATEGORY_NONE;
+        std::string _objectID = "";
+        std::string _uniqueID = "";
+        bool _forceUpdate = false;
+    };
+}

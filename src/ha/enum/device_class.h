@@ -2,14 +2,17 @@
 
 #include <Arduino.h>
 
-typedef const char DeviceClass;
+namespace EDHA
+{
+    typedef const char DeviceClass;
 
-// Binary sensor
-const DeviceClass deviceClassBinarySensorProblem[] = "problem";
-const DeviceClass deviceClassBinarySensorHeat[] = "heat";
+    // Binary sensor
+    const DeviceClass deviceClassBinarySensorProblem[] = "problem";
+    const DeviceClass deviceClassBinarySensorHeat[] = "heat";
 
-// Button
-const DeviceClass deviceClassButtonRestart[] = "restart";
+    // Button
+    const DeviceClass deviceClassButtonRestart[] = "restart";
 
-// Sensor
-const DeviceClass deviceClassSensorPowerFactor[] = "power_factor";
+    // Sensor
+    const DeviceClass deviceClassSensorPowerFactor[] = "power_factor";
+}

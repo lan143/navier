@@ -1,7 +1,7 @@
 #include "defines.h"
 #include "base_entity.h"
 
-void Base::buildBaseField(JsonObject entity)
+void EDHA::Base::buildBaseField(JsonObject entity)
 {
     if (_name.length() > 0) {
         (entity)[F("name")] = _name;

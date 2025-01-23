@@ -2,7 +2,7 @@
 #include "defines.h"
 #include "sensor.h"
 
-std::string Sensor::marshalJSON()
+std::string EDHA::Sensor::marshalJSON()
 {
     return EDUtils::buildJson([this](JsonObject entity) {
         buildBaseField(entity);

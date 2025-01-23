@@ -1,7 +1,7 @@
 #include <Json.h>
 #include "switch.h"
 
-std::string Switch::marshalJSON()
+std::string EDHA::Switch::marshalJSON()
 {
     return EDUtils::buildJson([this](JsonObject entity) {
         buildBaseField(entity);

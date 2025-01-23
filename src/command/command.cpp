@@ -16,6 +16,11 @@ bool Command::unmarshalJSON(const char* data)
             _drawingRelay = root[F("drawingRelay")].as<bool>();
         }
 
+        if (root.containsKey(F("shelftBrightness"))) {
+            _hasShelftBrightness = true;
+            _shelftBightness = root[F("shelftBrightness")].as<uint8_t>();
+        }
+
         return true;
     });
 }

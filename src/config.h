@@ -35,5 +35,6 @@ struct Config
     bool mqttIsHADiscovery = true;
     char mqttHADiscoveryPrefix[MQTT_TOPIC_LEN] = {0};
     char mqttCommandTopic[MQTT_TOPIC_LEN] = {0};
+    char mqttShelftSwitchCommandTopic[MQTT_TOPIC_LEN] = {0};
     char mqttStateTopic[MQTT_TOPIC_LEN] = {0};
 };

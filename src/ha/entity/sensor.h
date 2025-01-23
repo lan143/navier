@@ -5,52 +5,55 @@
 #include "base_entity.h"
 #include "ha/enum/sensor_state_class.h"
 
-class Sensor : public Base
+namespace EDHA
 {
-public:
-    Sensor(
-        Device* device,
-        std::string prefix,
-        std::string objectID,
-        std::string uniqueID
-    ) : Base(device, "sensor", prefix, objectID, uniqueID) { }
-
-    std::string marshalJSON();
-
-    Sensor* setStateTopic(std::string stateTopic)
+    class Sensor : public Base
     {
-        _stateTopic = stateTopic;
-        return this;
-    }
+    public:
+        Sensor(
+            Device* device,
+            std::string prefix,
+            std::string objectID,
+            std::string uniqueID
+        ) : Base(device, "sensor", prefix, objectID, uniqueID) { }
 
-    Sensor* setValueTemplate(std::string valueTemplate)
-    {
-        _valueTemplate = valueTemplate;
-        return this;
-    }
+        std::string marshalJSON();
 
-    Sensor* setUnitOfMeasurement(std::string unitOfMeasurement)
-    {
-        _unitOfMeasurement = unitOfMeasurement;
-        return this;
-    }
+        Sensor* setStateTopic(std::string stateTopic)
+        {
+            _stateTopic = stateTopic;
+            return this;
+        }
 
-    Sensor* setSensorStateClass(SensorStateClass sensorStateClass)
-    {
-        _sensorStateClass = sensorStateClass;
-        return this;
-    }
+        Sensor* setValueTemplate(std::string valueTemplate)
+        {
+            _valueTemplate = valueTemplate;
+            return this;
+        }
 
-    Sensor* setDeviceClass(std::string deviceClass)
-    {
-        _deviceClass = deviceClass;
-        return this;
-    }
+        Sensor* setUnitOfMeasurement(std::string unitOfMeasurement)
+        {
+            _unitOfMeasurement = unitOfMeasurement;
+            return this;
+        }
 
-private:
-    std::string _stateTopic = "";
-    std::string _valueTemplate = "";
-    std::string _unitOfMeasurement = "";
-    SensorStateClass _sensorStateClass = SENSOR_STATE_CLASS_NONE;
-    std::string _deviceClass = "";
-};
+        Sensor* setSensorStateClass(SensorStateClass sensorStateClass)
+        {
+            _sensorStateClass = sensorStateClass;
+            return this;
+        }
+
+        Sensor* setDeviceClass(std::string deviceClass)
+        {
+            _deviceClass = deviceClass;
+            return this;
+        }
+
+    private:
+        std::string _stateTopic = "";
+        std::string _valueTemplate = "";
+        std::string _unitOfMeasurement = "";
+        SensorStateClass _sensorStateClass = SENSOR_STATE_CLASS_NONE;
+        std::string _deviceClass = "";
+    };
+}

@@ -7,9 +7,9 @@
 class Meter
 {
 public:
-    Meter(DiscoveryMgr* discoveryMgr, RingStorage* ringStorage, StateMgr *stateMgr) : _discoveryMgr(discoveryMgr), _stateMgr(stateMgr), _ringStorage(ringStorage) {}
+    Meter(EDHA::DiscoveryMgr* discoveryMgr, RingStorage* ringStorage, StateMgr *stateMgr) : _discoveryMgr(discoveryMgr), _stateMgr(stateMgr), _ringStorage(ringStorage) {}
 
-    void init(Device* device, std::string stateTopic);
+    void init(EDHA::Device* device, std::string stateTopic);
     void loop();
 
     void setInitialValue(float_t value);
@@ -17,12 +17,12 @@ public:
 
 
 private:
-    void buildDiscovery(Device* device, std::string stateTopic);
+    void buildDiscovery(EDHA::Device* device, std::string stateTopic);
     int fromMeterCube(float_t value);
     float_t toMeterCube(int value);
 
 private:
-    DiscoveryMgr* _discoveryMgr;
+    EDHA::DiscoveryMgr* _discoveryMgr;
     RingStorage* _ringStorage;
     StateMgr* _stateMgr;
 

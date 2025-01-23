@@ -10,7 +10,6 @@ void CommandConsumer::consume(std::string payload)
     Command command;
     if (!command.unmarshalJSON(payload.c_str())) {
         ESP_LOGE("command_consumer", "cant unmarshal command");
-        
         return;
     }
 
@@ -20,5 +19,9 @@ void CommandConsumer::consume(std::string payload)
 
     if (command.hasDrawingRelay()) {
         _drawingRelay->activate(command.isDrawingRelay());
+    }
+
+    if (command.hasShelftBrightness()) {
+        _shelfLight->setBrightness(command.getShelftBightness());
     }
 }

@@ -4,14 +4,14 @@
 #include "discovery.h"
 #include "enum/entity_category.h"
 
-void DiscoveryMgr::init(SendFunction fn)
+void EDHA::DiscoveryMgr::init(SendFunction fn)
 {
     _isSend = false;
     _lastSendTime = 0;
     _sendFunction = fn;
 }
 
-void DiscoveryMgr::loop()
+void EDHA::DiscoveryMgr::loop()
 {
     if (!_isSend && (_lastSendTime + 10000) < millis()) {
         sendDiscovery();
@@ -19,7 +19,7 @@ void DiscoveryMgr::loop()
     }
 }
 
-void DiscoveryMgr::sendDiscovery()
+void EDHA::DiscoveryMgr::sendDiscovery()
 {
     if (!_config.mqttIsHADiscovery) {
         ESP_LOGD("discovery_mgr", "skip send, disabled in config");

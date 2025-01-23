@@ -1,7 +1,7 @@
 #include <esp_log.h>
 #include "meter.h"
 
-void Meter::init(Device* device, std::string stateTopic)
+void Meter::init(EDHA::Device* device, std::string stateTopic)
 {
     pinMode(METER_PIN, INPUT);
 
@@ -48,7 +48,7 @@ void Meter::setInitialValue(float_t value)
     _ringStorage->writeValue(_currentValue, _lock);
 }
 
-void Meter::buildDiscovery(Device* device, std::string stateTopic)
+void Meter::buildDiscovery(EDHA::Device* device, std::string stateTopic)
 {
     _discoveryMgr->addSensor(
         device,
@@ -59,7 +59,7 @@ void Meter::buildDiscovery(Device* device, std::string stateTopic)
         ->setStateTopic(stateTopic)
         ->setValueTemplate("{{ value_json.waterConsumption }}")
         ->setUnitOfMeasurement("m³")
-        ->setSensorStateClass(SENSOR_STATE_CLASS_TOTAL)
+        ->setSensorStateClass(EDHA::SENSOR_STATE_CLASS_TOTAL)
         ->setDeviceClass("water");
 }
 

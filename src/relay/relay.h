@@ -7,9 +7,9 @@ typedef std::function<void(bool isOn)> ActivateFunction;
 
 class Relay {
 public:
-    Relay(DiscoveryMgr* discoveryMgr) : _discoveryMgr(discoveryMgr) {}
+    Relay(EDHA::DiscoveryMgr* discoveryMgr) : _discoveryMgr(discoveryMgr) {}
 
-    void init(Device* device, std::string name, std::string id, int pin, bool reverse, std::string stateTopic, std::string commandTopic);
+    void init(EDHA::Device* device, std::string name, std::string id, int pin, bool reverse, std::string stateTopic, std::string commandTopic);
     void activate(bool isOn);
 
     void onActivate(ActivateFunction callback)
@@ -18,10 +18,10 @@ public:
     }
 
 private:
-    void buildDiscovery(Device* device, std::string name, std::string id, std::string stateTopic, std::string commandTopic);
+    void buildDiscovery(EDHA::Device* device, std::string name, std::string id, std::string stateTopic, std::string commandTopic);
 
 private:
-    DiscoveryMgr* _discoveryMgr;
+    EDHA::DiscoveryMgr* _discoveryMgr;
 
     int _pin;
     bool _reverse;

@@ -8,6 +8,8 @@ std::string State::marshalJSON()
         entity[F("waterCloseRelay")] = _waterCloseRelay ? "true" : "false";
         entity[F("drawingRelay")] = _drawingRelay ? "true" : "false";
         entity[F("waterConsumption")] = _waterConsumption;
+        entity[F("shelftSwitchState")] = _shelftSwitchState ? "ON" : "OFF";
+        entity[F("shelftBrightness")] = _shelftBrightness;
     });
 
     return payload;

@@ -7,89 +7,92 @@
 #include "base_entity.h"
 #include "utils/ext_strings.h"
 
-class Switch : public Base
+namespace EDHA
 {
-public:
-    Switch(
-        Device* device,
-        std::string prefix,
-        std::string objectID,
-        std::string uniqueID
-    ) : Base(device, "switch", prefix, objectID, uniqueID) { }
-    
-    Switch* setDeviceClass(std::string deviceClass)
+    class Switch : public Base
     {
-        _deviceClass = deviceClass;
+    public:
+        Switch(
+            Device* device,
+            std::string prefix,
+            std::string objectID,
+            std::string uniqueID
+        ) : Base(device, "switch", prefix, objectID, uniqueID) { }
+        
+        Switch* setDeviceClass(std::string deviceClass)
+        {
+            _deviceClass = deviceClass;
 
-        return this;
-    }
+            return this;
+        }
 
-    Switch* setCommandTopic(std::string commandTopic)
-    {
-        _commandTopic = commandTopic;
+        Switch* setCommandTopic(std::string commandTopic)
+        {
+            _commandTopic = commandTopic;
 
-        return this;
-    }
+            return this;
+        }
 
-    Switch* setCommandTemplate(std::string commandTemplate)
-    {
-        _commandTemplate = commandTemplate;
+        Switch* setCommandTemplate(std::string commandTemplate)
+        {
+            _commandTemplate = commandTemplate;
 
-        return this;
-    }
+            return this;
+        }
 
-    Switch* setStateTopic(std::string stateTopic)
-    {
-        _stateTopic = stateTopic;
+        Switch* setStateTopic(std::string stateTopic)
+        {
+            _stateTopic = stateTopic;
 
-        return this;
-    }
+            return this;
+        }
 
-    Switch* setValueTemplate(std::string valueTemplate)
-    {
-        _valueTemplate = valueTemplate;
+        Switch* setValueTemplate(std::string valueTemplate)
+        {
+            _valueTemplate = valueTemplate;
 
-        return this;
-    }
+            return this;
+        }
 
-    Switch* setPayloadOn(std::string payloadOn)
-    {
-        _payloadOn = payloadOn;
+        Switch* setPayloadOn(std::string payloadOn)
+        {
+            _payloadOn = payloadOn;
 
-        return this;
-    }
+            return this;
+        }
 
-    Switch* setPayloadOff(std::string payloadOff)
-    {
-        _payloadOff = payloadOff;
+        Switch* setPayloadOff(std::string payloadOff)
+        {
+            _payloadOff = payloadOff;
 
-        return this;
-    }
+            return this;
+        }
 
-    Switch* setStateOn(std::string stateOn)
-    {
-        _stateOn = stateOn;
+        Switch* setStateOn(std::string stateOn)
+        {
+            _stateOn = stateOn;
 
-        return this;
-    }
+            return this;
+        }
 
-    Switch* setStateOff(std::string stateOff)
-    {
-        _stateOff = stateOff;
+        Switch* setStateOff(std::string stateOff)
+        {
+            _stateOff = stateOff;
 
-        return this;
-    }
+            return this;
+        }
 
-    std::string marshalJSON() override;
+        std::string marshalJSON() override;
 
-private:
-    std::string _deviceClass = "";
-    std::string _commandTopic = "";
-    std::string _commandTemplate = "";
-    std::string _stateTopic = "";
-    std::string _valueTemplate = "";
-    std::string _payloadOn = "";
-    std::string _payloadOff = "";
-    std::string _stateOn = "";
-    std::string _stateOff = "";
-};
+    private:
+        std::string _deviceClass = "";
+        std::string _commandTopic = "";
+        std::string _commandTemplate = "";
+        std::string _stateTopic = "";
+        std::string _valueTemplate = "";
+        std::string _payloadOn = "";
+        std::string _payloadOff = "";
+        std::string _stateOn = "";
+        std::string _stateOff = "";
+    };
+}

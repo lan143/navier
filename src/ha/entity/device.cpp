@@ -2,12 +2,12 @@
 #include "Device.h"
 #include <Utils.h>
 
-Device::Device()
+EDHA::Device::Device()
 {
     addIdentifier(EDUtils::getMacAddress());
 }
 
-void Device::buildBaseField(JsonObject entity)
+void EDHA::Device::buildBaseField(JsonObject entity)
 {
     if (_configurationURL) {
         (entity)[F("configuration_url")] = _configurationURL;

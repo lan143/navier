@@ -7,7 +7,11 @@
 #include "defines.h"
 #include "config.h"
 #include "command/command_consumer.h"
+#include "command/switch_command_consumer.h"
 #include "ha/discovery.h"
+#include "led/led.h"
+#include "led/fx_engine.h"
+#include "light/light.h"
 #include "meter/meter.h"
 #include "meter/storage.h"
 #include "mqtt/mqtt.h"
@@ -20,14 +24,18 @@
 EDConfig::ConfigMgr<Config> configMgr(EEPROM_SIZE);
 NetworkMgr networkMgr(configMgr.getConfig(), true);
 MQTT mqtt(configMgr.getConfig(), &networkMgr);
-DiscoveryMgr discoveryMgr(configMgr.getConfig());
+EDHA::DiscoveryMgr discoveryMgr(configMgr.getConfig());
 Relay waterRelay(&discoveryMgr);
 Relay drawingRelay(&discoveryMgr);
-CommandConsumer commandConsumer(&waterRelay, &drawingRelay);
 StateProducer stateProducer(&mqtt);
 StateMgr stateMgr(&stateProducer);
 RingStorage ringStorage;
 Meter meter(&discoveryMgr, &ringStorage, &stateMgr);
+Led led;
+FXEngine fxEngine(&led);
+Light shelfLight(&discoveryMgr, &led, &fxEngine, &stateMgr);
+CommandConsumer commandConsumer(&waterRelay, &drawingRelay, &shelfLight);
+SwitchCommandConsumer shelfSwitchConsumer(&shelfLight);
 Handler handler(&configMgr, &meter, &networkMgr, &stateMgr);
 
 void setup()
@@ -45,6 +53,7 @@ void setup()
         snprintf(config.wifiAPSSID, WIFI_SSID_LEN, "Navier_%s", EDUtils::getMacAddress().c_str());
         snprintf(config.mqttStateTopic, MQTT_TOPIC_LEN, "navier/%s/state", EDUtils::getChipID());
         snprintf(config.mqttCommandTopic, MQTT_TOPIC_LEN, "navier/%s/set", EDUtils::getChipID());
+        snprintf(config.mqttShelftSwitchCommandTopic, MQTT_TOPIC_LEN, "navier/%s/shelf/switch", EDUtils::getChipID());
         snprintf(config.mqttHADiscoveryPrefix, MQTT_TOPIC_LEN, "homeassistant");
     });
     configMgr.load();
@@ -67,7 +76,7 @@ void setup()
         return mqtt.publish(topicName.c_str(), payload.c_str(), true);
     });
 
-    Device* device = discoveryMgr.addDevice();
+    EDHA::Device* device = discoveryMgr.addDevice();
     device->setHWVersion(deviceHWVersion)
         ->setSWVersion(deviceFWVersion)
         ->setModel(deviceModel)
@@ -87,6 +96,11 @@ void setup()
         stateMgr.setDrawingRelayOn(isOn);
     });
 
+    led.init(LED_PIN);
+    shelfLight.init(device, "Shelft light", "shelft", configMgr.getConfig().mqttStateTopic, configMgr.getConfig().mqttCommandTopic, configMgr.getConfig().mqttShelftSwitchCommandTopic);
+    shelfSwitchConsumer.init(configMgr.getConfig().mqttShelftSwitchCommandTopic);
+    mqtt.subscribe(&shelfSwitchConsumer);
+
     ESP_LOGI("setup", "complete");
 }
 
@@ -97,4 +111,5 @@ void loop()
     discoveryMgr.loop();
     meter.loop();
     ArduinoOTA.handle();
+    fxEngine.loop();
 }

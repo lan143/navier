@@ -5,90 +5,117 @@
 #include "config.h"
 #include "ha/entity/device.h"
 #include "ha/entity/base_entity.h"
+#include "ha/entity/light.h"
 #include "ha/entity/sensor.h"
 #include "ha/entity/switch.h"
 
-typedef std::function<bool(std::string topicName, std::string payload)> SendFunction;
-
-class DiscoveryMgr
+namespace EDHA
 {
-public:
-    DiscoveryMgr(
-        Config& config
-    ) : _config(config) {
-        _isSend = false;
-        _lastSendTime = 0;
-    }
+    typedef std::function<bool(std::string topicName, std::string payload)> SendFunction;
 
-    Device* addDevice()
+    class DiscoveryMgr
     {
-        _devices.push_back(Device());
-
-        return &_devices[_devices.size()-1];
-    }
-
-    void init(SendFunction fn);
-    void loop();
-
-public:
-    Sensor* addSensor(
-        Device* device,
-        std::string name,
-        std::string objectID,
-        std::string uniqueID
-    ) {
-        if (device == NULL && _devices.size() > 0) {
-            device = &_devices[_devices.size()-1];
+    public:
+        DiscoveryMgr(
+            Config& config
+        ) : _config(config) {
+            _isSend = false;
+            _lastSendTime = 0;
         }
 
-        Sensor* obj = new Sensor(
-            device,
-            _config.mqttHADiscoveryPrefix,
-            objectID,
-            uniqueID
-        );
-        obj->setName(name);
+        Device* addDevice()
+        {
+            _devices.push_back(Device());
 
-        _entities.push_back(obj);
-
-        return obj;
-    }
-    
-    Switch* addSwitch(
-        Device* device,
-        std::string name,
-        std::string objectID,
-        std::string uniqueID
-    ) {
-        if (device == NULL && _devices.size() > 0) {
-            device = &_devices[_devices.size()-1];
+            return &_devices[_devices.size()-1];
         }
 
-        Switch* obj = new Switch(
-            device,
-            _config.mqttHADiscoveryPrefix,
-            objectID,
-            uniqueID
-        );
-        obj->setName(name);
+        void init(SendFunction fn);
+        void loop();
 
-        _entities.push_back(obj);
+    public:
+        Light* addLight(
+            Device* device,
+            std::string name,
+            std::string objectID,
+            std::string uniqueID
+        ) {
+            if (device == NULL && _devices.size() > 0) {
+                device = &_devices[_devices.size()-1];
+            }
 
-        return obj;
-    }
+            Light* obj = new Light(
+                device,
+                _config.mqttHADiscoveryPrefix,
+                objectID,
+                uniqueID
+            );
+            obj->setName(name);
 
-private:
-    void sendDiscovery();
+            _entities.push_back(obj);
 
-private:
-    std::vector<Device> _devices;
-    std::vector<Base*> _entities;
-    SendFunction _sendFunction;
+            return obj;
+        }
 
-private:
-    Config& _config;
+        Sensor* addSensor(
+            Device* device,
+            std::string name,
+            std::string objectID,
+            std::string uniqueID
+        ) {
+            if (device == NULL && _devices.size() > 0) {
+                device = &_devices[_devices.size()-1];
+            }
 
-private:
-    bool _isSend;
-    uint64_t _lastSendTime;
-};
+            Sensor* obj = new Sensor(
+                device,
+                _config.mqttHADiscoveryPrefix,
+                objectID,
+                uniqueID
+            );
+            obj->setName(name);
+
+            _entities.push_back(obj);
+
+            return obj;
+        }
+        
+        Switch* addSwitch(
+            Device* device,
+            std::string name,
+            std::string objectID,
+            std::string uniqueID
+        ) {
+            if (device == NULL && _devices.size() > 0) {
+                device = &_devices[_devices.size()-1];
+            }
+
+            Switch* obj = new Switch(
+                device,
+                _config.mqttHADiscoveryPrefix,
+                objectID,
+                uniqueID
+            );
+            obj->setName(name);
+
+            _entities.push_back(obj);
+
+            return obj;
+        }
+
+    private:
+        void sendDiscovery();
+
+    private:
+        std::vector<Device> _devices;
+        std::vector<Base*> _entities;
+        SendFunction _sendFunction;
+
+    private:
+        Config& _config;
+
+    private:
+        bool _isSend;
+        uint64_t _lastSendTime;
+    };
+}
