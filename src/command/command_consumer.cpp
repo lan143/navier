@@ -21,7 +21,11 @@ void CommandConsumer::consume(std::string payload)
         _drawingRelay->activate(command.isDrawingRelay());
     }
 
-    if (command.hasShelftBrightness()) {
-        _shelfLight->setBrightness(command.getShelftBightness());
+    if (command.hasShelfBrightness()) {
+        _shelfLight->setBrightness(command.getShelfBightness());
+    }
+
+    if (command.hasShelfColor()) {
+        _shelfLight->setColor(command.getShelfColor());
     }
 }

@@ -41,5 +41,21 @@ std::string EDHA::Light::marshalJSON()
         if (_payloadOff.length() > 0) {
             entity[F("payload_off")] = _payloadOff;
         }
+
+        if (_rgbCommandTemplate.length() > 0) {
+            entity[F("rgb_command_template")] = _rgbCommandTemplate;
+        }
+
+        if (_rgbCommandTopic.length() > 0) {
+            entity[F("rgb_command_topic")] = _rgbCommandTopic;
+        }
+
+        if (_rgbStateTopic.length() > 0) {
+            entity[F("rgb_state_topic")] = _rgbStateTopic;
+        }
+
+        if (_rgbValueTemplate.length() > 0) {
+            entity[F("rgb_value_template")] = _rgbValueTemplate;
+        }
     });
 }

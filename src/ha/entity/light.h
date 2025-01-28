@@ -70,6 +70,30 @@ namespace EDHA
             return this;
         }
 
+        Light* setRGBCommandTemplate(std::string rgbCommandTemplate)
+        {
+            _rgbCommandTemplate = rgbCommandTemplate;
+            return this;
+        }
+
+        Light* setRGBCommandTopic(std::string rgbCommandTopic)
+        {
+            _rgbCommandTopic = rgbCommandTopic;
+            return this;
+        }
+
+        Light* setRGBStateTopic(std::string rgbStateTopic)
+        {
+            _rgbStateTopic = rgbStateTopic;
+            return this;
+        }
+
+        Light* setRGBValueTemplate(std::string rgbValueTemplate)
+        {
+            _rgbValueTemplate = rgbValueTemplate;
+            return this;
+        }
+
     private:
         std::string _brightnessStateTopic = "";
         std::string _brightnessValueTemplate = "";
@@ -80,5 +104,9 @@ namespace EDHA
         std::string _commandTopic = "";
         std::string _payloadOn = "";
         std::string _payloadOff = "";
+        std::string _rgbCommandTemplate = "";
+        std::string _rgbCommandTopic = "";
+        std::string _rgbStateTopic = "";
+        std::string _rgbValueTemplate = "";
     };
 }

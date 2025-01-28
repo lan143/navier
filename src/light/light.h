@@ -14,11 +14,12 @@ public:
 
     void setEnabled(bool enabled);
     void setBrightness(uint8_t brightness);
+    void setColor(CRGB color);
 
 private:
     bool _enabled = false;
     uint8_t _brightness = 0;
-    CRGB _color = CRGB::White;
+    CRGB _color = CRGB::FairyLightNCC;
 
 private:
     EDHA::DiscoveryMgr* _discoveryMgr;

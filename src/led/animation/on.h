@@ -8,9 +8,9 @@ class On : public Animation
 public:
     On(Led* led) : Animation(led) {}
 
-    void init(CRGB _color)
+    void init(CRGB color)
     {
-        _color = _color;
+        _color = color;
     }
 
     void update(uint64_t dt) override

@@ -12,3 +12,4 @@
 #include <stdexcept>
 
 extern std::string formatString(const char* format, ...);
+extern std::vector<std::string> split(const std::string& input, const std::string& delimiter);

@@ -6,8 +6,9 @@ State StateMgr::buildState()
         _waterRelayClosed,
         _drawingRelayOn,
         _waterConsumption,
-        _shelftLightSwitch,
-        _shelftBrightness
+        _shelfLightSwitch,
+        _shelfBrightness,
+        _shelfColor
     );
 }
 

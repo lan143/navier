@@ -1,5 +1,6 @@
 #pragma once
 
+#include <FastLED.h>
 #include "state.h"
 #include "producer.h"
 
@@ -28,15 +29,21 @@ public:
 
     float_t getWaterConsumption() { return _waterConsumption; }
 
-    void setShelftLightSwitch(bool shelftLightSwitch)
+    void setShelfLightSwitch(bool shelfLightSwitch)
     {
-        _shelftLightSwitch = shelftLightSwitch;
+        _shelfLightSwitch = shelfLightSwitch;
         publishState();
     }
 
-    void setShelftBrightness(uint8_t brightness)
+    void setShelfBrightness(uint8_t brightness)
     {
-        _shelftBrightness = brightness;
+        _shelfBrightness = brightness;
+        publishState();
+    }
+
+    void setShelfColor(CRGB color)
+    {
+        _shelfColor = color;
         publishState();
     }
 
@@ -45,8 +52,9 @@ private:
     bool _drawingRelayOn = false;
     float_t _waterConsumption = 0.0f;
 
-    bool _shelftLightSwitch = false;
-    uint8_t _shelftBrightness = 0;
+    bool _shelfLightSwitch = false;
+    uint8_t _shelfBrightness = 0;
+    CRGB _shelfColor = 0;
 
 private:
     State buildState();
