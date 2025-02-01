@@ -9,7 +9,14 @@ public:
     FXEngine(Led* led) : _led(led) {}
 
     void loop();
-    void playAnimation(Animation* animation) { _animation = animation; }
+    void playAnimation(Animation* animation)
+    {
+        if (_animation != NULL) {
+            delete _animation;
+        }
+
+        _animation = animation;
+    }
 
 private:
     Led* _led;
