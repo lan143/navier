@@ -2,6 +2,7 @@
 
 #include <Arduino.h>
 #include <WiFi.h>
+#include "light/config.h"
 
 #define CURRENT_VERSION 1
 
@@ -37,4 +38,7 @@ struct Config
     char mqttCommandTopic[MQTT_TOPIC_LEN] = {0};
     char mqttShelfSwitchCommandTopic[MQTT_TOPIC_LEN] = {0};
     char mqttStateTopic[MQTT_TOPIC_LEN] = {0};
+
+    // Light
+    LightConfig shelfLight;
 };

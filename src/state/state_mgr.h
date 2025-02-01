@@ -29,21 +29,12 @@ public:
 
     float_t getWaterConsumption() { return _waterConsumption; }
 
-    void setShelfLightSwitch(bool shelfLightSwitch)
+    void setShelfState(bool enabled, uint8_t brightness, CRGB color)
     {
-        _shelfLightSwitch = shelfLightSwitch;
-        publishState();
-    }
-
-    void setShelfBrightness(uint8_t brightness)
-    {
+        _shelfLightSwitch = enabled;
         _shelfBrightness = brightness;
-        publishState();
-    }
-
-    void setShelfColor(CRGB color)
-    {
         _shelfColor = color;
+
         publishState();
     }
 

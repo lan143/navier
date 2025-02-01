@@ -4,10 +4,17 @@
 #include "led/animation/off.h"
 #include "utils/ext_strings.h"
 
-void Light::init(EDHA::Device* device, std::string name, std::string id, std::string stateTopic, std::string commandTopic, std::string switchCommandTopic)
+void Light::init(LightConfig* config, EDHA::Device* device, std::string name, std::string id, std::string stateTopic, std::string commandTopic, std::string switchCommandTopic)
 {
-    _stateMgr->setShelfBrightness(_brightness);
-    _stateMgr->setShelfColor(_color);
+    _config = config;
+    setEnabled(config->enabled);
+    setBrightness(config->brightness);
+    setColor(config->color);
+    _lastConfigUpdateTime = millis();
+
+    for (auto callback : _changeStateCallbacks) {
+        callback(_enabled, _brightness, _color);
+    }
 
     std::string stateTemplate = formatString("{{ value_json.%sSwitchState }}", id.c_str());
     std::string brightnessValueTemplate = formatString("{{ value_json.%sBrightness }}", id.c_str());
@@ -37,8 +44,39 @@ void Light::init(EDHA::Device* device, std::string name, std::string id, std::st
         ->setRGBValueTemplate(colorStateTemplate);
 }
 
+void Light::loop()
+{
+    if ((_lastConfigUpdateTime + 60000) < millis()) {
+        bool hasChanges = false;
+        if (_config->enabled != _enabled) {
+            _config->enabled = _enabled;
+            hasChanges = true;
+        }
+
+        if (_config->brightness != _brightness) {
+            _config->brightness = _brightness;
+            hasChanges = true;
+        }
+
+        if (_config->color != _color) {
+            _config->color = _color;
+            hasChanges = true;
+        }
+
+        if (hasChanges) {
+            _configMgr->store();
+        }
+
+        _lastConfigUpdateTime = millis();
+    }
+}
+
 void Light::setEnabled(bool enabled)
 {
+    if (_enabled == enabled) {
+        return;
+    }
+
     _enabled = enabled;
 
     if (enabled) {
@@ -50,26 +88,42 @@ void Light::setEnabled(bool enabled)
         _fxEngine->playAnimation(off);
     }
 
-    _stateMgr->setShelfLightSwitch(_enabled);
+    for (auto callback : _changeStateCallbacks) {
+        callback(_enabled, _brightness, _color);
+    }
 }
 
 void Light::setBrightness(uint8_t brightness)
 {
+    if (_brightness == brightness) {
+        return;
+    }
+
     _brightness = brightness;
     _led->setBrightness(brightness);
-    _stateMgr->setShelfBrightness(brightness);
 
     if (!_enabled) {
         setEnabled(true);
+    }
+
+    for (auto callback : _changeStateCallbacks) {
+        callback(_enabled, _brightness, _color);
     }
 }
 
 void Light::setColor(CRGB color)
 {
-    _color = color;
-    _stateMgr->setShelfColor(_color);
+    if (_color == color) {
+        return;
+    }
     
-    On* on = new On(_led);
-    on->init(_color);
-    _fxEngine->playAnimation(on);
+    _color = color;
+
+    for (int i = 0; i < _led->getPixelsCount(); i++) {
+        _led->setPixel(i, _color);
+    }
+
+    for (auto callback : _changeStateCallbacks) {
+        callback(_enabled, _brightness, _color);
+    }
 }

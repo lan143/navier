@@ -33,7 +33,7 @@ RingStorage ringStorage;
 Meter meter(&discoveryMgr, &ringStorage, &stateMgr);
 Led led;
 FXEngine fxEngine(&led);
-Light shelfLight(&discoveryMgr, &led, &fxEngine, &stateMgr);
+Light shelfLight(&configMgr, &discoveryMgr, &led, &fxEngine);
 CommandConsumer commandConsumer(&waterRelay, &drawingRelay, &shelfLight);
 SwitchCommandConsumer shelfSwitchConsumer(&shelfLight);
 Handler handler(&configMgr, &meter, &networkMgr, &stateMgr);
@@ -97,7 +97,10 @@ void setup()
     });
 
     led.init(LED_PIN);
-    shelfLight.init(device, "Shelf light", "shelf", configMgr.getConfig().mqttStateTopic, configMgr.getConfig().mqttCommandTopic, configMgr.getConfig().mqttShelfSwitchCommandTopic);
+    shelfLight.init(&(configMgr.getConfig().shelfLight), device, "Shelf light", "shelf", configMgr.getConfig().mqttStateTopic, configMgr.getConfig().mqttCommandTopic, configMgr.getConfig().mqttShelfSwitchCommandTopic);
+    shelfLight.OnChangeState([](bool enabled, uint8_t brightness, CRGB color) {
+        stateMgr.setShelfState(enabled, brightness, color);
+    });
     shelfSwitchConsumer.init(configMgr.getConfig().mqttShelfSwitchCommandTopic);
     mqtt.subscribe(&shelfSwitchConsumer);
 
@@ -112,4 +115,5 @@ void loop()
     meter.loop();
     ArduinoOTA.handle();
     fxEngine.loop();
+    shelfLight.loop();
 }

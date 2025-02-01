@@ -6,17 +6,26 @@
 class Off : public Animation
 {
 public:
-    Off(Led* led) : Animation(led) {}
+    Off(Led* led) : Animation(led) { }
 
     void update(uint64_t dt) override
     {
-        for (int i = 0; i < _led->getPixelsCount(); i++) {
-            _led->setPixel(i, CRGB::Black);
+        uint8_t brightness = _led->getBrightness();
+        if (brightness < 10) {
+            brightness = 0;
+            _isEnded = true;
+        } else {
+            brightness -= 10;
         }
+
+        _led->setBrightness(brightness);
     }
 
     bool isEnded() override
     {
-        return true;
+        return _isEnded;
     }
+
+private:
+    bool _isEnded = false;
 };
