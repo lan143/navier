@@ -1,10 +1,11 @@
+#include <ExtStrings.h>
+
 #include "light.h"
 
 #include "led/animation/on.h"
 #include "led/animation/off.h"
 #include "led/animation/change_color.h"
 #include "led/animation/change_brightness.h"
-#include "utils/ext_strings.h"
 
 void Light::init(LightConfig* config, EDHA::Device* device, std::string name, std::string id, std::string stateTopic, std::string commandTopic, std::string switchCommandTopic)
 {
@@ -28,12 +29,12 @@ void Light::init(LightConfig* config, EDHA::Device* device, std::string name, st
         callback(_enabled, _brightness, _color);
     }
 
-    std::string stateTemplate = formatString("{{ value_json.%sSwitchState }}", id.c_str());
-    std::string brightnessValueTemplate = formatString("{{ value_json.%sBrightness }}", id.c_str());
-    std::string brightnessCommandTemplate = formatString("{\"%sBrightness\": {{ value }} }", id.c_str());
-    std::string uniqueId = formatString("%s_light_navier", id.c_str());
-    std::string colorCommandTemplate = formatString("{\"%sColor\": \"{{ value }}\" }", id.c_str());
-    std::string colorStateTemplate = formatString("{{ value_json.%sColor }}", id.c_str());
+    std::string stateTemplate = EDUtils::formatString("{{ value_json.%sSwitchState }}", id.c_str());
+    std::string brightnessValueTemplate = EDUtils::formatString("{{ value_json.%sBrightness }}", id.c_str());
+    std::string brightnessCommandTemplate = EDUtils::formatString("{\"%sBrightness\": {{ value }} }", id.c_str());
+    std::string uniqueId = EDUtils::formatString("%s_light_navier", id.c_str());
+    std::string colorCommandTemplate = EDUtils::formatString("{\"%sColor\": \"{{ value }}\" }", id.c_str());
+    std::string colorStateTemplate = EDUtils::formatString("{{ value_json.%sColor }}", id.c_str());
 
     _discoveryMgr->addLight(
         device,

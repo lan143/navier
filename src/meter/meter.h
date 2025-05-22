@@ -1,6 +1,6 @@
 #pragma once
 
-#include "ha/discovery.h"
+#include <discovery.h>
 #include "state/state_mgr.h"
 #include "storage.h"
 

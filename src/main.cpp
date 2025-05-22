@@ -3,12 +3,12 @@
 #include <SPIFFS.h>
 #include <ConfigMgr.h>
 #include <esp_log.h>
+#include <discovery.h>
 
 #include "defines.h"
 #include "config.h"
 #include "command/command_consumer.h"
 #include "command/switch_command_consumer.h"
-#include "ha/discovery.h"
 #include "led/led.h"
 #include "led/fx_engine.h"
 #include "light/light.h"
@@ -24,7 +24,7 @@
 EDConfig::ConfigMgr<Config> configMgr(EEPROM_SIZE);
 NetworkMgr networkMgr(configMgr.getConfig(), true);
 MQTT mqtt(configMgr.getConfig(), &networkMgr);
-EDHA::DiscoveryMgr discoveryMgr(configMgr.getConfig());
+EDHA::DiscoveryMgr discoveryMgr;
 Relay waterRelay(&discoveryMgr);
 Relay drawingRelay(&discoveryMgr);
 StateProducer stateProducer(&mqtt);
@@ -72,9 +72,13 @@ void setup()
 
     handler.init();
 
-    discoveryMgr.init([](std::string topicName, std::string payload) {
-        return mqtt.publish(topicName.c_str(), payload.c_str(), true);
-    });
+    discoveryMgr.init(
+        configMgr.getConfig().mqttHADiscoveryPrefix,
+        configMgr.getConfig().mqttIsHADiscovery,
+        [](std::string topicName, std::string payload) {
+            return mqtt.publish(topicName.c_str(), payload.c_str(), true);
+        }
+    );
 
     EDHA::Device* device = discoveryMgr.addDevice();
     device->setHWVersion(deviceHWVersion)

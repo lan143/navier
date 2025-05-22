@@ -1,7 +1,7 @@
 #include <Json.h>
+#include <ExtStrings.h>
 #include "defines.h"
 #include "state.h"
-#include "utils/ext_strings.h"
 
 std::string State::marshalJSON()
 {
@@ -11,7 +11,7 @@ std::string State::marshalJSON()
         entity[F("waterConsumption")] = _waterConsumption;
         entity[F("shelfSwitchState")] = _shelfSwitchState ? "ON" : "OFF";
         entity[F("shelfBrightness")] = _shelfBrightness;
-        entity[F("shelfColor")] = formatString("%d,%d,%d", _shelfColor.r, _shelfColor.g, _shelfColor.b);
+        entity[F("shelfColor")] = EDUtils::formatString("%d,%d,%d", _shelfColor.r, _shelfColor.g, _shelfColor.b);
     });
 
     return payload;

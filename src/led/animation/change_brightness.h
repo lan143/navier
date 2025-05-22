@@ -9,6 +9,11 @@ class ChangeBrightness : public Animation
 {
 public:
     ChangeBrightness(Led* led) : Animation(led) { }
+    ~ChangeBrightness()
+    {
+        _led->setBrightness(_targetBrightness);
+        _led->update();
+    }
 
     void init(uint8_t brightness)
     {

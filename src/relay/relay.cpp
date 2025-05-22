@@ -1,5 +1,5 @@
+#include <ExtStrings.h>
 #include "relay.h"
-#include "utils/ext_strings.h"
 
 void Relay::init(EDHA::Device* device, std::string name, std::string id, int pin, bool reverse, std::string stateTopic, std::string commandTopic)
 {
@@ -27,9 +27,9 @@ void Relay::activate(bool isOn)
 
 void Relay::buildDiscovery(EDHA::Device* device, std::string name, std::string id, std::string stateTopic, std::string commandTopic)
 {
-    std::string commandTemplate = formatString("{\"%sRelay\": {{ value }} }", id.c_str());
-    std::string stateTemplate = formatString("{{ value_json.%sRelay }}", id.c_str());
-    std::string uniqueId = formatString("%s_relay_navier", id.c_str());
+    std::string commandTemplate = EDUtils::formatString("{\"%sRelay\": {{ value }} }", id.c_str());
+    std::string stateTemplate = EDUtils::formatString("{{ value_json.%sRelay }}", id.c_str());
+    std::string uniqueId = EDUtils::formatString("%s_relay_navier", id.c_str());
 
     _discoveryMgr->addSwitch(
         device,

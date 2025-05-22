@@ -1,7 +1,7 @@
 #pragma once
 
-#include "ha/discovery.h"
-#include "ha/entity/device.h"
+#include <discovery.h>
+#include <entity/device.h>
 
 typedef std::function<void(bool isOn)> ActivateFunction;
 

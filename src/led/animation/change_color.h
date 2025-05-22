@@ -8,6 +8,14 @@ class ChangeColor : public Animation
 {
 public:
     ChangeColor(Led* led) : Animation(led) {}
+    ~ChangeColor()
+    {
+        for (int i = 0; i < _led->getPixelsCount(); i++) {
+            _led->setPixel(i, _to);
+        }
+        
+        _led->update();
+    }
 
     void init(CRGB from, CRGB to)
     {

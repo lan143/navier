@@ -7,6 +7,13 @@ class On : public Animation
 {
 public:
     On(Led* led) : Animation(led) {}
+    ~On()
+    {
+        for (int i = 0; i < _led->getPixelsCount(); i++) {
+            _led->setPixel(i, _color);
+        }
+        _led->update();
+    }
 
     void init(CRGB color)
     {

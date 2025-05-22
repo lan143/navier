@@ -3,7 +3,6 @@
 #include <ExtStrings.h>
 #include "defines.h"
 #include "command.h"
-#include "utils/ext_strings.h"
 
 bool Command::unmarshalJSON(const char* data)
 {
@@ -19,19 +18,23 @@ bool Command::unmarshalJSON(const char* data)
         }
 
         if (root.containsKey(F("shelfBrightness"))) {
-            _hasShelfBrightness = true;
             _shelfBightness = root[F("shelfBrightness")].as<uint8_t>();
+            if (_shelfBightness > 0) {
+                _hasShelfBrightness = true;
+            }
         }
 
         if (root.containsKey(F("shelfColor"))) {
-            _hasShelfColor = true;
             const char* color = root[F("shelfColor")].as<const char*>();
-            std::vector<std::string> rgb = split(color, ",");
+            std::vector<std::string> rgb = EDUtils::split(color, ",");
 
             if (rgb.size() == 3) {
+                _hasShelfColor = true;
+
                 for (int i = 0; i < 3; i++) {
                     int c = 0;
                     if (EDUtils::str2int(&c, rgb[i].c_str(), 10) != EDUtils::STR2INT_SUCCESS) {
+                        _hasShelfColor = false;
                         break;
                     }
 

@@ -1,4 +1,5 @@
 #include <esp_log.h>
+#include "defines.h"
 #include "meter.h"
 
 void Meter::init(EDHA::Device* device, std::string stateTopic)

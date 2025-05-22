@@ -1,9 +1,10 @@
 #pragma once
 
 #include <ConfigMgr.h>
-#include "config.h"
-#include "ha/discovery.h"
-#include "ha/entity/device.h"
+#include <discovery.h>
+#include <entity/device.h>
+
+#include "../config.h"
 #include "led/fx_engine.h"
 #include "led/led.h"
 

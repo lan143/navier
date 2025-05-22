@@ -7,6 +7,13 @@ class Off : public Animation
 {
 public:
     Off(Led* led) : Animation(led) { }
+    ~Off()
+    {
+        for (int i = 0; i < _led->getPixelsCount(); i++) {
+            _led->setPixel(i, CRGB::Black);
+        }
+        _led->update();
+    }
 
     void init(CRGB color)
     {
