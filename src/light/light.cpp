@@ -96,13 +96,13 @@ void Light::setEnabled(bool enabled)
         On* on = new On(_led);
         on->init(_color);
         _fxEngine->playAnimation(on);
+        _led->setBrightness(_brightness);
     } else {
         Off* off = new Off(_led);
         off->init(_color);
         _fxEngine->playAnimation(off);
+        _led->setBrightness(0);
     }
-
-    _led->setBrightness(_brightness);
 
     for (auto callback : _changeStateCallbacks) {
         callback(_enabled, _brightness, _color);
