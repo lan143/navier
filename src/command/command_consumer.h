@@ -1,11 +1,12 @@
 #pragma once
 
 #include <Arduino.h>
+#include <consumer.h>
+
 #include "light/light.h"
-#include "mqtt/Consumer.h"
 #include "relay/relay.h"
 
-class CommandConsumer : public Consumer
+class CommandConsumer : public EDMQTT::Consumer
 {
 public:
     CommandConsumer(

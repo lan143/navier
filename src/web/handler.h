@@ -8,6 +8,7 @@
 
 #include <ESPAsyncWebServer.h>
 #include <ConfigMgr.h>
+#include <healthcheck.h>
 
 #include "config.h"
 #include "meter/meter.h"
@@ -20,8 +21,9 @@ public:
         EDConfig::ConfigMgr<Config>* configMgr,
         Meter* meter,
         NetworkMgr* networkMgr,
-        StateMgr* stateMgr
-    ) : _configMgr(configMgr), _meter(meter), _networkMgr(networkMgr), _stateMgr(stateMgr) {
+        StateMgr* stateMgr,
+        EDHealthCheck::HealthCheck* healthCheck
+    ) : _configMgr(configMgr), _meter(meter), _networkMgr(networkMgr), _stateMgr(stateMgr), _healthCheck(healthCheck) {
         _server = new AsyncWebServer(80);
     }
 
@@ -33,4 +35,5 @@ private:
     Meter* _meter;
     NetworkMgr* _networkMgr;
     StateMgr* _stateMgr;
+    EDHealthCheck::HealthCheck* _healthCheck;
 };

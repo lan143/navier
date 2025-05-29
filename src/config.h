@@ -2,6 +2,7 @@
 
 #include <Arduino.h>
 #include <WiFi.h>
+#include <mqtt_config.h>
 #include "light/config.h"
 
 #define CURRENT_VERSION 1
@@ -29,10 +30,8 @@ struct Config
     char wifiPassword[WIFI_PWD_LEN] = {0};
 
     // MQTT
-    char mqttHost[HOST_LEN] = {0};
-    uint16_t mqttPort = MQTT_DEFAULT_PORT;
-    char mqttLogin[MQTT_LOGIN_LEN] = {0};
-    char mqttPassword[MQTT_PASSWORD_LEN] = {0};
+    EDMQTT::Config mqtt;
+
     bool mqttIsHADiscovery = true;
     char mqttHADiscoveryPrefix[MQTT_TOPIC_LEN] = {0};
     char mqttCommandTopic[MQTT_TOPIC_LEN] = {0};

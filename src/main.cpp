@@ -4,6 +4,8 @@
 #include <ConfigMgr.h>
 #include <esp_log.h>
 #include <discovery.h>
+#include <mqtt.h>
+#include <healthcheck.h>
 
 #include "defines.h"
 #include "config.h"
@@ -14,7 +16,6 @@
 #include "light/light.h"
 #include "meter/meter.h"
 #include "meter/storage.h"
-#include "mqtt/mqtt.h"
 #include "network/network.h"
 #include "state/producer.h"
 #include "state/state_mgr.h"
@@ -23,7 +24,8 @@
 
 EDConfig::ConfigMgr<Config> configMgr(EEPROM_SIZE);
 NetworkMgr networkMgr(configMgr.getConfig(), true);
-MQTT mqtt(configMgr.getConfig(), &networkMgr);
+EDHealthCheck::HealthCheck healthCheck;
+EDMQTT::MQTT mqtt(configMgr.getConfig().mqtt);
 EDHA::DiscoveryMgr discoveryMgr;
 Relay waterRelay(&discoveryMgr);
 Relay drawingRelay(&discoveryMgr);
@@ -36,7 +38,7 @@ FXEngine fxEngine(&led);
 Light shelfLight(&configMgr, &discoveryMgr, &led, &fxEngine);
 CommandConsumer commandConsumer(&waterRelay, &drawingRelay, &shelfLight);
 SwitchCommandConsumer shelfSwitchConsumer(&shelfLight);
-Handler handler(&configMgr, &meter, &networkMgr, &stateMgr);
+Handler handler(&configMgr, &meter, &networkMgr, &stateMgr, &healthCheck);
 
 void setup()
 {
@@ -66,6 +68,7 @@ void setup()
     commandConsumer.init(configMgr.getConfig().mqttCommandTopic);
 
     mqtt.init();
+    healthCheck.registerService(&mqtt);
     mqtt.subscribe(&commandConsumer);
 
     stateProducer.init(configMgr.getConfig().mqttStateTopic);
@@ -120,4 +123,5 @@ void loop()
     ArduinoOTA.handle();
     fxEngine.loop();
     shelfLight.loop();
+    healthCheck.loop();
 }

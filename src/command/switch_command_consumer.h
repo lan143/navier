@@ -1,10 +1,11 @@
 #pragma once
 
 #include <Arduino.h>
-#include "light/light.h"
-#include "mqtt/consumer.h"
+#include <consumer.h>
 
-class SwitchCommandConsumer : public Consumer
+#include "light/light.h"
+
+class SwitchCommandConsumer : public EDMQTT::Consumer
 {
 public:
     SwitchCommandConsumer(Light* light) : _light(light) {}

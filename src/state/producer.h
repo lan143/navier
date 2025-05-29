@@ -1,14 +1,14 @@
 #pragma once
 
 #include <Arduino.h>
-#include "mqtt/MQTT.h"
-#include "mqtt/Producer.h"
+#include <mqtt.h>
+#include <producer.h>
 #include "state.h"
 
-class StateProducer : public Producer
+class StateProducer : public EDMQTT::Producer
 {
 public:
-    StateProducer(MQTT* mqtt) : Producer(mqtt) {}
+    StateProducer(EDMQTT::MQTT* mqtt) : Producer(mqtt) {}
 
     void publish(State* state);
 };
