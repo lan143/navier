@@ -7,14 +7,14 @@ class State
 {
 public:
     State(
-        bool _waterCloseRelay,
-        bool _drawingRelay,
+        bool waterCloseRelay,
+        bool drawingRelay,
         float_t waterConsumption,
         bool shelfSwitchState,
         uint8_t shelfBrightness,
         CRGB shelfColor
-    ) : _waterCloseRelay(_waterCloseRelay),
-        _drawingRelay(_drawingRelay),
+    ) : _waterCloseRelay(waterCloseRelay),
+        _drawingRelay(drawingRelay),
         _waterConsumption(waterConsumption),
         _shelfSwitchState(shelfSwitchState),
         _shelfBrightness(shelfBrightness),

@@ -14,13 +14,13 @@ void NetworkMgr::init()
                 _isWiFiConnected = true;
                 ESP_LOGI("network", "wifi connected");
                 break;
-            case ARDUINO_EVENT_ETH_GOT_IP:
-                _isEthernetConnected = true;
-                ESP_LOGI("network", "ethernet connected");
-                break;
             case ARDUINO_EVENT_WIFI_STA_DISCONNECTED:
                 _isWiFiConnected = false;
                 ESP_LOGI("network", "wifi disconnected");
+                break;
+            case ARDUINO_EVENT_ETH_GOT_IP:
+                _isEthernetConnected = true;
+                ESP_LOGI("network", "ethernet connected");
                 break;
             case ARDUINO_EVENT_ETH_DISCONNECTED:
                 _isEthernetConnected = false;
@@ -42,14 +42,22 @@ void NetworkMgr::init()
 
 void NetworkMgr::loop()
 {
-    if (_lastCheckConnectTime + 5000 < millis()) {
+    if (_lastCheckConnectTime + 500 < millis()) {
+        if (_prevIsConnected != isConnected()) {
+            for (const auto& fn : _connectCallbacks) {
+                fn(isConnected());
+            }
+
+            _prevIsConnected = isConnected();
+        }
+
         if (!isConnected() && _mode != MODE_WIFI_AP) {
             _failedConnectCounts++;
         } else {
             _failedConnectCounts = 0;
         }
 
-        if (_failedConnectCounts >= 3) {
+        if (_failedConnectCounts >= 30) {
             switch (_mode) {
                 case MODE_ETHERNET:
                     if (!_config.isAPMode) {

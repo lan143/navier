@@ -68,6 +68,11 @@ void setup()
     commandConsumer.init(configMgr.getConfig().mqttCommandTopic);
 
     mqtt.init();
+    networkMgr.OnConnect([&](bool isConnected) {
+        if (isConnected) {
+            mqtt.connect();
+        }
+    });
     healthCheck.registerService(&mqtt);
     mqtt.subscribe(&commandConsumer);
 
@@ -116,7 +121,6 @@ void setup()
 
 void loop()
 {
-    mqtt.loop();
     networkMgr.loop();
     discoveryMgr.loop();
     meter.loop();
