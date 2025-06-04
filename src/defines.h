@@ -15,9 +15,16 @@
 #define METER_PIN 36
 #define LED_PIN 33
 
+#define RS485RX  35
+#define RS485TX  32
+
 #define EEPROM_SIZE 2048
 
-const char deviceName[] = "Navier";
+#ifndef CONTROLLER_NAME
+#define CONTROLLER_NAME "Navier"
+#endif
+
+const char deviceName[] = CONTROLLER_NAME;
 const char deviceModel[] = "KC868-A2";
 const char deviceManufacturer[] = "Kincony";
 const char deviceHWVersion[] = "1.0.0";

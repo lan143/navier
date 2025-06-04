@@ -7,6 +7,9 @@
 #include <mqtt.h>
 #include <healthcheck.h>
 
+#include <wirenboard.h>
+#include <device/wb_msw.h>
+
 #include "defines.h"
 #include "config.h"
 #include "command/command_consumer.h"
@@ -20,6 +23,7 @@
 #include "state/producer.h"
 #include "state/state_mgr.h"
 #include "relay/relay.h"
+#include "sensor/complex.h"
 #include "web/handler.h"
 
 EDConfig::ConfigMgr<Config> configMgr(EEPROM_SIZE);
@@ -40,14 +44,20 @@ CommandConsumer commandConsumer(&waterRelay, &drawingRelay, &shelfLight);
 SwitchCommandConsumer shelfSwitchConsumer(&shelfLight);
 Handler handler(&configMgr, &meter, &networkMgr, &stateMgr, &healthCheck);
 
+EDWB::WirenBoard modbus(Serial2);
+ComplexSensor complexSensor(&discoveryMgr, &stateMgr, &modbus);
+
 void setup()
 {
     randomSeed(micros());
 
     Serial.begin(SERIAL_SPEED);
+    Serial2.begin(9600, SERIAL_8N1, RS485RX, RS485TX);
 
     ESP_LOGI("setup", "Navier");
     ESP_LOGI("setup", "start");
+
+    modbus.init(15);
 
     SPIFFS.begin(true);
 
@@ -57,6 +67,7 @@ void setup()
         snprintf(config.mqttCommandTopic, MQTT_TOPIC_LEN, "navier/%s/set", EDUtils::getChipID());
         snprintf(config.mqttShelfSwitchCommandTopic, MQTT_TOPIC_LEN, "navier/%s/shelf/switch", EDUtils::getChipID());
         snprintf(config.mqttHADiscoveryPrefix, MQTT_TOPIC_LEN, "homeassistant");
+        config.addressComplexSensor = 87;
     });
     configMgr.load();
 
@@ -116,6 +127,8 @@ void setup()
     shelfSwitchConsumer.init(configMgr.getConfig().mqttShelfSwitchCommandTopic);
     mqtt.subscribe(&shelfSwitchConsumer);
 
+    complexSensor.init(device, configMgr.getConfig().mqttStateTopic, configMgr.getConfig().addressComplexSensor);
+
     ESP_LOGI("setup", "complete");
 }
 
@@ -128,4 +141,5 @@ void loop()
     fxEngine.loop();
     shelfLight.loop();
     healthCheck.loop();
+    complexSensor.loop();
 }

@@ -38,6 +38,40 @@ public:
         publishState();
     }
 
+    void setTemperature(float_t temperature)
+    {
+        _temperature = temperature;
+        publishState();
+    }
+
+    void setHumidity(float_t humidity)
+    {
+        _humidity = humidity;
+        publishState();
+    }
+
+    void setSoundPressure(float_t soundPressure)
+    {
+        _soundPressure = soundPressure;
+        publishState();
+    }
+
+    void setAirQuality(int16_t airQuality)
+    {
+        _airQuality = airQuality;
+        publishState();
+    }
+
+    void setMotionDetected(bool detected)
+    {
+        bool isChanged = _motionDetected != detected;
+        _motionDetected = detected;
+
+        if (isChanged) {
+            publishState();
+        }
+    }
+
 private:
     bool _waterRelayClosed = false;
     bool _drawingRelayOn = false;
@@ -46,6 +80,12 @@ private:
     bool _shelfLightSwitch = false;
     uint8_t _shelfBrightness = 0;
     CRGB _shelfColor = 0;
+
+    float_t _temperature = 0.0f;
+    float_t _humidity = 0.0f;
+    float_t _soundPressure = 0.0f;
+    int16_t _airQuality = 0;
+    bool _motionDetected = false;
 
 private:
     State buildState();

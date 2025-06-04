@@ -38,6 +38,9 @@ struct Config
     char mqttShelfSwitchCommandTopic[MQTT_TOPIC_LEN] = {0};
     char mqttStateTopic[MQTT_TOPIC_LEN] = {0};
 
+    // modbus
+    uint8_t addressComplexSensor = 0;
+
     // Light
     LightConfig shelfLight;
 };

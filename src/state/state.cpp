@@ -12,6 +12,11 @@ std::string State::marshalJSON()
         entity[F("shelfSwitchState")] = _shelfSwitchState ? "ON" : "OFF";
         entity[F("shelfBrightness")] = _shelfBrightness;
         entity[F("shelfColor")] = EDUtils::formatString("%d,%d,%d", _shelfColor.r, _shelfColor.g, _shelfColor.b);
+        entity[F("temperature")] = _temperature;
+        entity[F("humidity")] = _humidity;
+        entity[F("soundPressure")] = _soundPressure;
+        entity[F("airQuality")] = _airQuality;
+        entity[F("motionDetected")] = _motionDetected ? "true" : "false";
     });
 
     return payload;

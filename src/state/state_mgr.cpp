@@ -8,7 +8,12 @@ State StateMgr::buildState()
         _waterConsumption,
         _shelfLightSwitch,
         _shelfBrightness,
-        _shelfColor
+        _shelfColor,
+        _temperature,
+        _humidity,
+        _soundPressure,
+        _airQuality,
+        _motionDetected
     );
 }
 
