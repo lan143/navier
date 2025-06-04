@@ -17,6 +17,7 @@ std::string State::marshalJSON()
         entity[F("soundPressure")] = _soundPressure;
         entity[F("airQuality")] = _airQuality;
         entity[F("motionDetected")] = _motionDetected ? "true" : "false";
+        entity[F("waterLeakToilet")] = _waterLeakToilet ? "true" : "false";
     });
 
     return payload;

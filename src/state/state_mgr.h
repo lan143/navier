@@ -72,6 +72,16 @@ public:
         }
     }
 
+    void setWaterLeakToilet(bool detected)
+    {
+        bool isChanged = _waterLeakToilet != detected;
+        _waterLeakToilet = detected;
+
+        if (isChanged) {
+            publishState();
+        }
+    }
+
 private:
     bool _waterRelayClosed = false;
     bool _drawingRelayOn = false;
@@ -86,6 +96,8 @@ private:
     float_t _soundPressure = 0.0f;
     int16_t _airQuality = 0;
     bool _motionDetected = false;
+    
+    bool _waterLeakToilet = false;
 
 private:
     State buildState();

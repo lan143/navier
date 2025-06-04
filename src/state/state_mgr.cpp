@@ -13,7 +13,8 @@ State StateMgr::buildState()
         _humidity,
         _soundPressure,
         _airQuality,
-        _motionDetected
+        _motionDetected,
+        _waterLeakToilet
     );
 }
 

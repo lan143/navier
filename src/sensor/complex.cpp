@@ -3,7 +3,6 @@
 void ComplexSensor::init(EDHA::Device* device, std::string stateTopic, uint8_t address)
 {
     const char* chipID = EDUtils::getChipID();
-
     _mswSensor = _modbus->addMSW(address);
 
     _discoveryMgr->addSensor(
@@ -59,7 +58,8 @@ void ComplexSensor::init(EDHA::Device* device, std::string stateTopic, uint8_t a
         ->setStateTopic(stateTopic)
         ->setValueTemplate("{{ value_json.motionDetected }}")
         ->setPayloadOn("true")
-        ->setPayloadOff("false");
+        ->setPayloadOff("false")
+        ->setDeviceClass(EDHA::deviceClassBinarySensorMotion);
 }
 
 void ComplexSensor::loop()

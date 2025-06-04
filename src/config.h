@@ -40,6 +40,7 @@ struct Config
 
     // modbus
     uint8_t addressComplexSensor = 0;
+    uint8_t addressBinarySensor = 0;
 
     // Light
     LightConfig shelfLight;

@@ -17,7 +17,8 @@ public:
         float_t humidity,
         float_t soundPressure,
         int16_t airQuality,
-        bool motionDetected
+        bool motionDetected,
+        bool waterLeakToilet
     ) : _waterCloseRelay(waterCloseRelay),
         _drawingRelay(drawingRelay),
         _waterConsumption(waterConsumption),
@@ -28,7 +29,8 @@ public:
         _humidity(humidity),
         _soundPressure(soundPressure),
         _airQuality(airQuality),
-        _motionDetected(motionDetected) {}
+        _motionDetected(motionDetected),
+        _waterLeakToilet(waterLeakToilet) {}
 
     std::string marshalJSON();
 
@@ -44,4 +46,5 @@ private:
     float_t _soundPressure = 0.0f;
     int16_t _airQuality = 0;
     bool _motionDetected = false;
+    bool _waterLeakToilet = false;
 };

@@ -23,6 +23,7 @@
 #include "state/producer.h"
 #include "state/state_mgr.h"
 #include "relay/relay.h"
+#include "sensor/binary.h"
 #include "sensor/complex.h"
 #include "web/handler.h"
 
@@ -45,6 +46,7 @@ SwitchCommandConsumer shelfSwitchConsumer(&shelfLight);
 Handler handler(&configMgr, &meter, &networkMgr, &stateMgr, &healthCheck);
 
 EDWB::WirenBoard modbus(Serial2);
+BinarySensor binarySensor(&discoveryMgr, &stateMgr, &modbus);
 ComplexSensor complexSensor(&discoveryMgr, &stateMgr, &modbus);
 
 void setup()
@@ -68,6 +70,7 @@ void setup()
         snprintf(config.mqttShelfSwitchCommandTopic, MQTT_TOPIC_LEN, "navier/%s/shelf/switch", EDUtils::getChipID());
         snprintf(config.mqttHADiscoveryPrefix, MQTT_TOPIC_LEN, "homeassistant");
         config.addressComplexSensor = 87;
+        config.addressBinarySensor = 208;
     });
     configMgr.load();
 
@@ -127,6 +130,7 @@ void setup()
     shelfSwitchConsumer.init(configMgr.getConfig().mqttShelfSwitchCommandTopic);
     mqtt.subscribe(&shelfSwitchConsumer);
 
+    binarySensor.init(device, configMgr.getConfig().mqttStateTopic, configMgr.getConfig().addressBinarySensor);
     complexSensor.init(device, configMgr.getConfig().mqttStateTopic, configMgr.getConfig().addressComplexSensor);
 
     ESP_LOGI("setup", "complete");
@@ -141,5 +145,6 @@ void loop()
     fxEngine.loop();
     shelfLight.loop();
     healthCheck.loop();
+    binarySensor.loop();
     complexSensor.loop();
 }
