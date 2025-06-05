@@ -9,6 +9,7 @@
 #include <ESPAsyncWebServer.h>
 #include <ConfigMgr.h>
 #include <healthcheck.h>
+#include <wirenboard.h>
 
 #include "config.h"
 #include "meter/meter.h"
@@ -22,8 +23,10 @@ public:
         Meter* meter,
         NetworkMgr* networkMgr,
         StateMgr* stateMgr,
-        EDHealthCheck::HealthCheck* healthCheck
-    ) : _configMgr(configMgr), _meter(meter), _networkMgr(networkMgr), _stateMgr(stateMgr), _healthCheck(healthCheck) {
+        EDHealthCheck::HealthCheck* healthCheck,
+        EDWB::WirenBoard* modbus
+    ) : _configMgr(configMgr), _meter(meter), _networkMgr(networkMgr), _stateMgr(stateMgr),
+        _healthCheck(healthCheck), _modbus(modbus) {
         _server = new AsyncWebServer(80);
     }
 
@@ -36,4 +39,5 @@ private:
     NetworkMgr* _networkMgr;
     StateMgr* _stateMgr;
     EDHealthCheck::HealthCheck* _healthCheck;
+    EDWB::WirenBoard* _modbus;
 };

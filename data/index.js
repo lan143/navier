@@ -41,6 +41,24 @@ function loadSettings() {
     });
 }
 
+function loadModbusSettings() {
+    $.ajax({
+        type: 'GET',
+        url: '/api/settings/modbus',
+        dataType: 'json',
+        success: function (data) {
+            $('form#modbus-settings select[name=modbusSpeed]').val(data.modbusSpeed);
+            $('form#modbus-settings input[name=addressWBMSW]').val(data.addressWBMSW);
+            $('form#modbus-settings input[name=addressWBMCM8]').val(data.addressWBMCM8);
+            $('form#modbus-settings input[name=addressWBLED1]').val(data.addressWBLED1);
+            $('form#modbus-settings input[name=addressWBLED2]').val(data.addressWBLED2);
+        },
+        error: function (xhr, str) {
+            alert('Errors while loading settings');
+        }
+    });
+}
+
 function updateWiFiStatus() {
     if (updateWiFiStatusInProgress) {
         return;
@@ -67,6 +85,7 @@ function updateWiFiStatus() {
 $(function() {
     loadSettings();
     updateWiFiStatus();
+    loadModbusSettings()
 
     setInterval(updateWiFiStatus, 10000);
 
@@ -157,11 +176,49 @@ $(function() {
                 initialValue: $(this).find('input[name=initialValue]').val()
             },
             success: function (data) {
-                alert('Settings successful changed.');
+                alert('Settings successful changed. Reboot...');
+
+                $.ajax({
+                    type: 'POST',
+                    url: '/api/reboot',
+                    dataType: 'json'
+                });
             },
             error: function (xhr, str) {
                 var data = JSON.parse(xhr.responseText);
                 alert('Errors while save settings: ' + data.message);
+            }
+        });
+
+        return false;
+    });
+
+    $('form#modbus-settings').submit(function(event) {
+        event.preventDefault();
+
+        $.ajax({
+            type: 'POST',
+            url: '/api/settings/modbus',
+            dataType: 'json',
+            data: {
+                modbusSpeed: $(this).find('select[name=modbusSpeed]').val(),
+                addressWBMSW: $(this).find('input[name=addressWBMSW]').val(),
+                addressWBMCM8: $(this).find('input[name=addressWBMCM8]').val(),
+                addressWBLED1: $(this).find('input[name=addressWBLED1]').val(),
+                addressWBLED2: $(this).find('input[name=addressWBLED2]').val()
+            },
+            success: function (data) {
+                alert('Modbus settings successful changed. Reboot...');
+
+                $.ajax({
+                    type: 'POST',
+                    url: '/api/reboot',
+                    dataType: 'json'
+                });
+            },
+            error: function (xhr, str) {
+                var data = JSON.parse(xhr.responseText);
+                alert('Errors while save modbus settings: ' + data.message);
             }
         });
 

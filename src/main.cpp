@@ -43,23 +43,21 @@ FXEngine fxEngine(&led);
 Light shelfLight(&configMgr, &discoveryMgr, &led, &fxEngine);
 CommandConsumer commandConsumer(&waterRelay, &drawingRelay, &shelfLight);
 SwitchCommandConsumer shelfSwitchConsumer(&shelfLight);
-Handler handler(&configMgr, &meter, &networkMgr, &stateMgr, &healthCheck);
 
 EDWB::WirenBoard modbus(Serial2);
 BinarySensor binarySensor(&discoveryMgr, &stateMgr, &modbus);
 ComplexSensor complexSensor(&discoveryMgr, &stateMgr, &modbus);
+
+Handler handler(&configMgr, &meter, &networkMgr, &stateMgr, &healthCheck, &modbus);
 
 void setup()
 {
     randomSeed(micros());
 
     Serial.begin(SERIAL_SPEED);
-    Serial2.begin(9600, SERIAL_8N1, RS485RX, RS485TX);
 
     ESP_LOGI("setup", "Navier");
     ESP_LOGI("setup", "start");
-
-    modbus.init(15);
 
     SPIFFS.begin(true);
 
@@ -69,10 +67,16 @@ void setup()
         snprintf(config.mqttCommandTopic, MQTT_TOPIC_LEN, "navier/%s/set", EDUtils::getChipID());
         snprintf(config.mqttShelfSwitchCommandTopic, MQTT_TOPIC_LEN, "navier/%s/shelf/switch", EDUtils::getChipID());
         snprintf(config.mqttHADiscoveryPrefix, MQTT_TOPIC_LEN, "homeassistant");
-        config.addressComplexSensor = 87;
-        config.addressBinarySensor = 208;
+        config.modbusSpeed = 9600;
+        config.addressWBMSW = 87;
+        config.addressWBMCM8 = 208;
+        config.addressWBLED1 = 167;
+        config.addressWBLED2 = 111;
     });
     configMgr.load();
+
+    Serial2.begin(configMgr.getConfig().modbusSpeed, SERIAL_8N1, RS485RX, RS485TX);
+    modbus.init(15);
 
     networkMgr.init();
 
@@ -130,8 +134,8 @@ void setup()
     shelfSwitchConsumer.init(configMgr.getConfig().mqttShelfSwitchCommandTopic);
     mqtt.subscribe(&shelfSwitchConsumer);
 
-    binarySensor.init(device, configMgr.getConfig().mqttStateTopic, configMgr.getConfig().addressBinarySensor);
-    complexSensor.init(device, configMgr.getConfig().mqttStateTopic, configMgr.getConfig().addressComplexSensor);
+    binarySensor.init(device, configMgr.getConfig().mqttStateTopic, configMgr.getConfig().addressWBMCM8);
+    complexSensor.init(device, configMgr.getConfig().mqttStateTopic, configMgr.getConfig().addressWBMSW);
 
     ESP_LOGI("setup", "complete");
 }

@@ -33,6 +33,114 @@ void Handler::init()
         request->send(response);*/
     });
 
+    _server->on("/api/settings/modbus", HTTP_GET, [this](AsyncWebServerRequest *request) {
+        AsyncResponseStream *response = request->beginResponseStream("application/json");
+
+        std::string payload = EDUtils::buildJson([this](JsonObject entity) {
+            Config& config = _configMgr->getConfig();
+
+            entity["modbusSpeed"] = config.modbusSpeed;
+            entity["addressWBMSW"] = config.addressWBMSW;
+            entity["addressWBMCM8"] = config.addressWBMCM8;
+            entity["addressWBLED1"] = config.addressWBLED1;
+            entity["addressWBLED2"] = config.addressWBLED2;
+        });
+
+        response->write(payload.c_str());
+        request->send(response);
+    });
+
+
+    _server->on("/api/settings/modbus", HTTP_POST, [this](AsyncWebServerRequest *request) {
+        if (
+            !request->hasParam("modbusSpeed", true)
+            || !request->hasParam("addressWBMSW", true)
+            || !request->hasParam("addressWBMCM8", true)
+            || !request->hasParam("addressWBLED1", true)
+            || !request->hasParam("addressWBLED2", true)
+        ) {
+            request->send(422, "application/json", "{\"message\": \"not present modbus params in request\"}");
+            return;
+        }
+
+        const AsyncWebParameter* modbusSpeedParam = request->getParam("modbusSpeed", true);
+        const AsyncWebParameter* addressWBMSWParam = request->getParam("addressWBMSW", true);
+        const AsyncWebParameter* addressWBMCM8Param = request->getParam("addressWBMCM8", true);
+        const AsyncWebParameter* addressWBLED1Param = request->getParam("addressWBLED1", true);
+        const AsyncWebParameter* addressWBLED2Param = request->getParam("addressWBLED2", true);
+
+        int modbusSpeed;
+        if (EDUtils::str2int(&modbusSpeed, modbusSpeedParam->value().c_str(), 10) != EDUtils::STR2INT_SUCCESS) {
+            request->send(422, "application/json", "{\"message\": \"Incorrect modbus speed\"}");
+            return;
+        }
+
+        switch (modbusSpeed) {
+            case 1200:
+                break;
+            case 2400:
+                break;
+            case 4800:
+                break;
+            case 9600:
+                break;
+            case 19200:
+                break;
+            case 38400:
+                break;
+            case 57600:
+                break;
+            case 115200:
+                break;
+            default:
+                request->send(422, "application/json", "{\"message\": \"Unsupported modbus speed\"}");
+                return;
+        }
+
+        int addressWBMSW;
+        if (EDUtils::str2int(&addressWBMSW, addressWBMSWParam->value().c_str(), 10) != EDUtils::STR2INT_SUCCESS
+            || addressWBMSW < 1 || addressWBMSW > 254) {
+            request->send(422, "application/json", "{\"message\": \"Incorrect address WB-MSW\"}");
+            return;
+        }
+
+        int addressWBMCM8;
+        if (EDUtils::str2int(&addressWBMCM8, addressWBMCM8Param->value().c_str(), 10) != EDUtils::STR2INT_SUCCESS
+            || addressWBMCM8 < 1 || addressWBMCM8 > 254) {
+            request->send(422, "application/json", "{\"message\": \"Incorrect address WB-MCM8\"}");
+            return;
+        }
+
+        int addressWBLED1;
+        if (EDUtils::str2int(&addressWBLED1, addressWBLED1Param->value().c_str(), 10) != EDUtils::STR2INT_SUCCESS
+            || addressWBLED1 < 1 || addressWBLED1 > 254) {
+            request->send(422, "application/json", "{\"message\": \"Incorrect address WB-LED 1\"}");
+            return;
+        }
+
+        int addressWBLED2;
+        if (EDUtils::str2int(&addressWBLED2, addressWBLED2Param->value().c_str(), 10) != EDUtils::STR2INT_SUCCESS
+            || addressWBLED2 < 1 || addressWBLED2 > 254) {
+            request->send(422, "application/json", "{\"message\": \"Incorrect address WB-LED 2\"}");
+            return;
+        }
+
+        Config& config = _configMgr->getConfig();
+        if (modbusSpeed != config.modbusSpeed) {
+            _modbus->changeSpeed(modbusSpeed);
+        }
+
+        config.modbusSpeed = modbusSpeed;
+        config.addressWBMSW = addressWBMSW;
+        config.addressWBMCM8 = addressWBMCM8;
+        config.addressWBLED1 = addressWBLED1;
+        config.addressWBLED2 = addressWBLED2;
+
+        _configMgr->store();
+
+        request->send(200, "application/json", "{}");
+    });
+
     _server->on("/api/settings", HTTP_GET, [this](AsyncWebServerRequest *request) {
         AsyncResponseStream *response = request->beginResponseStream("application/json");
 

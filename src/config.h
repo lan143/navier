@@ -39,8 +39,11 @@ struct Config
     char mqttStateTopic[MQTT_TOPIC_LEN] = {0};
 
     // modbus
-    uint8_t addressComplexSensor = 0;
-    uint8_t addressBinarySensor = 0;
+    uint32_t modbusSpeed = 0;
+    uint8_t addressWBMSW = 0;
+    uint8_t addressWBMCM8 = 0;
+    uint8_t addressWBLED1 = 0;
+    uint8_t addressWBLED2 = 0;
 
     // Light
     LightConfig shelfLight;
