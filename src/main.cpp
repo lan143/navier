@@ -147,4 +147,5 @@ void loop()
     healthCheck.loop();
     binarySensor.loop();
     complexSensor.loop();
+    stateMgr.loop();
 }

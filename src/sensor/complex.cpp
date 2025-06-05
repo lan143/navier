@@ -9,7 +9,7 @@ void ComplexSensor::init(EDHA::Device* device, std::string stateTopic, uint8_t a
         device,
         "Temperature",
         "temperature",
-        EDUtils::formatString("%s_temperature_navier", chipID)
+        EDUtils::formatString("temperature_navier_%s", chipID)
     )
         ->setStateTopic(stateTopic)
         ->setValueTemplate("{{ value_json.temperature }}")
@@ -20,7 +20,7 @@ void ComplexSensor::init(EDHA::Device* device, std::string stateTopic, uint8_t a
         device,
         "Humidity",
         "humidity",
-        EDUtils::formatString("%s_humidity_navier", chipID)
+        EDUtils::formatString("humidity_navier_%s", chipID)
     )
         ->setStateTopic(stateTopic)
         ->setValueTemplate("{{ value_json.humidity }}")
@@ -31,7 +31,7 @@ void ComplexSensor::init(EDHA::Device* device, std::string stateTopic, uint8_t a
         device,
         "Air quality",
         "airQuality",
-        EDUtils::formatString("%s_air_quality_navier", chipID)
+        EDUtils::formatString("air_quality_navier_%s", chipID)
     )
         ->setStateTopic(stateTopic)
         ->setValueTemplate("{{ value_json.airQuality }}")
@@ -42,7 +42,7 @@ void ComplexSensor::init(EDHA::Device* device, std::string stateTopic, uint8_t a
         device,
         "Sound pressure",
         "soundPressure",
-        EDUtils::formatString("%s_sound_pressure_navier", chipID)
+        EDUtils::formatString("sound_pressure_navier_%s", chipID)
     )
         ->setStateTopic(stateTopic)
         ->setValueTemplate("{{ value_json.soundPressure }}")
@@ -53,7 +53,7 @@ void ComplexSensor::init(EDHA::Device* device, std::string stateTopic, uint8_t a
         device,
         "Motion detected",
         "motion_detected",
-        EDUtils::formatString("%s_motion_detected_navier", chipID)
+        EDUtils::formatString("motion_detected_navier_%s", chipID)
     )
         ->setStateTopic(stateTopic)
         ->setValueTemplate("{{ value_json.motionDetected }}")
@@ -65,8 +65,16 @@ void ComplexSensor::init(EDHA::Device* device, std::string stateTopic, uint8_t a
 void ComplexSensor::loop()
 {
     if ((_lastClimateUpdateTime + 10000) < millis()) {
-        _stateMgr->setTemperature(_mswSensor->getTemperature());
-        _stateMgr->setHumidity(_mswSensor->getHumidity());
+        float_t temperature = _mswSensor->getTemperature();
+        if (temperature != -1000.f) {
+            _stateMgr->setTemperature(_mswSensor->getTemperature());
+        }
+
+        float_t humidity = _mswSensor->getHumidity();
+        if (humidity > 0.0f) {
+            _stateMgr->setHumidity(_mswSensor->getHumidity());
+        }
+
         _lastClimateUpdateTime = millis();
     }
 

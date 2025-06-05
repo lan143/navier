@@ -3,6 +3,24 @@
 #include "defines.h"
 #include "state.h"
 
+bool State::operator==(State& other)
+{
+    return (*this)._waterCloseRelay == other._waterCloseRelay
+        && (*this)._drawingRelay == other._drawingRelay
+        && (*this)._waterConsumption == other._waterConsumption
+        && (*this)._shelfSwitchState == other._shelfSwitchState
+        && (*this)._shelfBrightness == other._shelfBrightness
+        && (*this)._shelfColor == other._shelfColor
+        && (*this)._temperature == other._temperature
+        && (*this)._humidity == other._humidity
+        && (*this)._soundPressure == other._soundPressure
+        && (*this)._airQuality == other._airQuality
+        && (*this)._motionDetected == other._motionDetected
+        && (*this)._waterLeakToilet == other._waterLeakToilet
+        && (*this)._waterLeakBathroom == other._waterLeakBathroom
+        && (*this)._waterLeakKitchen == other._waterLeakKitchen;
+}
+
 std::string State::marshalJSON()
 {
     std::string payload = EDUtils::buildJson([this](JsonObject entity) {
@@ -18,6 +36,10 @@ std::string State::marshalJSON()
         entity[F("airQuality")] = _airQuality;
         entity[F("motionDetected")] = _motionDetected ? "true" : "false";
         entity[F("waterLeakToilet")] = _waterLeakToilet ? "true" : "false";
+        entity[F("waterLeakBathroom")] = _waterLeakBathroom ? "true" : "false";
+        entity[F("waterLeakKitchen")] = _waterLeakKitchen ? "true" : "false";
+        entity[F("toiletDoorOpen")] = _toiletDoorOpen ? "true" : "false";
+        entity[F("toiletManholeOpen")] = _toiletManholeOpen ? "true" : "false";
     });
 
     return payload;

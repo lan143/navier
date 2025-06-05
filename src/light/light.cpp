@@ -1,4 +1,5 @@
 #include <ExtStrings.h>
+#include <Utils.h>
 
 #include "light.h"
 
@@ -32,7 +33,7 @@ void Light::init(LightConfig* config, EDHA::Device* device, std::string name, st
     std::string stateTemplate = EDUtils::formatString("{{ value_json.%sSwitchState }}", id.c_str());
     std::string brightnessValueTemplate = EDUtils::formatString("{{ value_json.%sBrightness }}", id.c_str());
     std::string brightnessCommandTemplate = EDUtils::formatString("{\"%sBrightness\": {{ value }} }", id.c_str());
-    std::string uniqueId = EDUtils::formatString("%s_light_navier", id.c_str());
+    std::string uniqueId = EDUtils::formatString("%s_light_navier_%s", id.c_str(), EDUtils::getChipID());
     std::string colorCommandTemplate = EDUtils::formatString("{\"%sColor\": \"{{ value }}\" }", id.c_str());
     std::string colorStateTemplate = EDUtils::formatString("{{ value_json.%sColor }}", id.c_str());
 

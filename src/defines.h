@@ -24,8 +24,14 @@
 #define CONTROLLER_NAME "Navier"
 #endif
 
+#define WB_MCM8_CHANNEL_WATER_LEAK_TOILET   1
+#define WB_MCM8_CHANNEL_WATER_LEAK_BATHROOM 2
+#define WB_MCM8_CHANNEL_WATER_LEAK_KITCHEN  3
+#define WB_MCM8_CHANNEL_TOILET_DOOR         4
+#define WB_MCM8_CHANNEL_TOILET_MANHOLE      5
+
 const char deviceName[] = CONTROLLER_NAME;
 const char deviceModel[] = "KC868-A2";
 const char deviceManufacturer[] = "Kincony";
-const char deviceHWVersion[] = "1.0.0";
-const char deviceFWVersion[] = "0.1.0";
+const char deviceHWVersion[] = "1.1.0";
+const char deviceFWVersion[] = "0.2.0";

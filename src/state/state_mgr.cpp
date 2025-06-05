@@ -1,25 +1,13 @@
 #include "state_mgr.h"
 
-State StateMgr::buildState()
+void StateMgr::loop()
 {
-    return State(
-        _waterRelayClosed,
-        _drawingRelayOn,
-        _waterConsumption,
-        _shelfLightSwitch,
-        _shelfBrightness,
-        _shelfColor,
-        _temperature,
-        _humidity,
-        _soundPressure,
-        _airQuality,
-        _motionDetected,
-        _waterLeakToilet
-    );
-}
+    if ((_updateStateLastTime + 500) < millis()) {
+        if (_currentState != _prevState) {
+            _prevState = _currentState;
+            _producer->publish(&_currentState);
+        }
 
-void StateMgr::publishState()
-{
-    State state = buildState();
-    _producer->publish(&state);
+        _updateStateLastTime = millis();
+    }
 }
