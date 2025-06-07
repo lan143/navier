@@ -68,10 +68,10 @@ void setup()
         snprintf(config.mqttShelfSwitchCommandTopic, MQTT_TOPIC_LEN, "navier/%s/shelf/switch", EDUtils::getChipID());
         snprintf(config.mqttHADiscoveryPrefix, MQTT_TOPIC_LEN, "homeassistant");
         config.modbusSpeed = 9600;
-        config.addressWBMSW = 87;
-        config.addressWBMCM8 = 208;
-        config.addressWBLED1 = 167;
-        config.addressWBLED2 = 111;
+        config.addressWBMSW = 1;
+        config.addressWBMCM8 = 2;
+        config.addressWBLED1 = 3;
+        config.addressWBLED2 = 4;
     });
     configMgr.load();
 

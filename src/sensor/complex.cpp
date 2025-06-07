@@ -38,17 +38,6 @@ void ComplexSensor::init(EDHA::Device* device, std::string stateTopic, uint8_t a
         ->setUnitOfMeasurement("ppb")
         ->setDeviceClass(EDHA::deviceClassSensorAQI);
 
-    _discoveryMgr->addSensor(
-        device,
-        "Sound pressure",
-        "soundPressure",
-        EDUtils::formatString("sound_pressure_navier_%s", chipID)
-    )
-        ->setStateTopic(stateTopic)
-        ->setValueTemplate("{{ value_json.soundPressure }}")
-        ->setUnitOfMeasurement("dB")
-        ->setDeviceClass(EDHA::deviceClassSoundPressure);
-
     _discoveryMgr->addBinarySensor(
         device,
         "Motion detected",
@@ -78,14 +67,14 @@ void ComplexSensor::loop()
         _lastClimateUpdateTime = millis();
     }
 
-    if ((_lastAirQualityUpdateTime + 3000) < millis()) {
-        _stateMgr->setAirQuality(_mswSensor->getAirQuality());
-        _lastAirQualityUpdateTime = millis();
-    }
+    if ((_lastAirQualityUpdateTime + 1000) < millis()) {
+        int16_t airQualityRaw = _mswSensor->getAirQuality();
+        if (airQualityRaw != 0) {
+            int16_t airQualiy = _airQualityFilter->filtered(airQualityRaw);
+            _stateMgr->setAirQuality(airQualiy);
+        }
 
-    if ((_lastSoundPressureUpdateTime + 1300) < millis()) {
-        _stateMgr->setSoundPressure(_mswSensor->getSoundPressure());
-        _lastSoundPressureUpdateTime = millis();
+        _lastAirQualityUpdateTime = millis();
     }
 
     if ((_lastMotionUpdateTime + 200) < millis()) {

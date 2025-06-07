@@ -16,10 +16,31 @@ public:
     void setDrawingRelayOn(bool isOn) { _currentState.setDrawingRelayOn(isOn); }
     void setWaterConsumption(float_t waterConsumption) { _currentState.setWaterConsumption(waterConsumption); }
     void setShelfState(bool enabled, uint8_t brightness, CRGB color) { _currentState.setShelfState(enabled, brightness, color); }
-    void setTemperature(float_t temperature) { _currentState.setTemperature(temperature); }
-    void setHumidity(float_t humidity) { _currentState.setHumidity(humidity); }
-    void setSoundPressure(float_t soundPressure) { _currentState.setSoundPressure(soundPressure); }
-    void setAirQuality(int16_t airQuality) { _currentState.setAirQuality(airQuality); }
+
+    void setTemperature(float_t temperature)
+    {
+        if (_currentState.getTemperature() == -1000.0f || abs(temperature - _currentState.getTemperature()) > 0.5 || (_updateTemperatureLastTime + 1200000) < millis()) {
+            _currentState.setTemperature(temperature);
+            _updateTemperatureLastTime = millis();
+        }
+    }
+
+    void setHumidity(float_t humidity)
+    {
+        if (_currentState.getHumidity() == -1000.0f || abs(humidity - _currentState.getHumidity()) > 0.5 || (_updateHumidityLastTime + 1200000) < millis()) {
+            _currentState.setHumidity(humidity);
+            _updateHumidityLastTime = millis();
+        }
+    }
+
+    void setAirQuality(int16_t airQuality)
+    {
+        if (_currentState.getAirQuality() == -1 || abs(airQuality - _currentState.getAirQuality()) > 50 || (_updateAirQualityLastTime + 1200000) < millis()) {
+            _currentState.setAirQuality(airQuality);
+            _updateAirQualityLastTime = millis();
+        }
+    }
+
     void setMotionDetected(bool detected) { _currentState.setMotionDetected(detected); }
     void setWaterLeakToilet(bool detected) { _currentState.setWaterLeakToilet(detected); }
     void setWaterLeakBathroom(bool detected) { _currentState.setWaterLeakBathroom(detected); }
@@ -32,4 +53,7 @@ private:
     State _prevState;
     StateProducer* _producer;
     unsigned long _updateStateLastTime = 0;
+    unsigned long _updateTemperatureLastTime = 0;
+    unsigned long _updateHumidityLastTime = 0;
+    unsigned long _updateAirQualityLastTime = 0;
 };

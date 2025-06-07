@@ -3,7 +3,7 @@
 void StateMgr::loop()
 {
     if ((_updateStateLastTime + 500) < millis()) {
-        if (_currentState != _prevState) {
+        if (_currentState.isValid() && _currentState != _prevState) {
             _prevState = _currentState;
             _producer->publish(&_currentState);
         }

@@ -13,7 +13,6 @@ bool State::operator==(State& other)
         && (*this)._shelfColor == other._shelfColor
         && (*this)._temperature == other._temperature
         && (*this)._humidity == other._humidity
-        && (*this)._soundPressure == other._soundPressure
         && (*this)._airQuality == other._airQuality
         && (*this)._motionDetected == other._motionDetected
         && (*this)._waterLeakToilet == other._waterLeakToilet
@@ -32,7 +31,6 @@ std::string State::marshalJSON()
         entity[F("shelfColor")] = EDUtils::formatString("%d,%d,%d", _shelfColor.r, _shelfColor.g, _shelfColor.b);
         entity[F("temperature")] = _temperature;
         entity[F("humidity")] = _humidity;
-        entity[F("soundPressure")] = _soundPressure;
         entity[F("airQuality")] = _airQuality;
         entity[F("motionDetected")] = _motionDetected ? "true" : "false";
         entity[F("waterLeakToilet")] = _waterLeakToilet ? "true" : "false";

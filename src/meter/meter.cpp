@@ -1,3 +1,5 @@
+#include <ExtStrings.h>
+#include <Utils.h>
 #include <esp_log.h>
 #include "defines.h"
 #include "meter.h"
@@ -55,7 +57,7 @@ void Meter::buildDiscovery(EDHA::Device* device, std::string stateTopic)
         device,
         "Water consumption",
         "water_consumption",
-        "water_consumption_sensor_navier"
+        EDUtils::formatString("water_consumption_sensor_navier_%s", EDUtils::getChipID())
     )
         ->setStateTopic(stateTopic)
         ->setValueTemplate("{{ value_json.waterConsumption }}")
