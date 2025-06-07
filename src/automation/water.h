@@ -12,6 +12,7 @@ public:
 
 private:
     unsigned long _lastCheckTime = 0;
+    uint8_t _failsCount = 0;
 
 private:
     Relay* _waterCloseRelay = NULL;
