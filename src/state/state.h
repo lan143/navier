@@ -35,9 +35,16 @@ public:
     int16_t getAirQuality() const { return _airQuality; }
 
     void setMotionDetected(bool detected) { _motionDetected = detected; }
+
     void setWaterLeakToilet(bool detected) { _waterLeakToilet = detected; }
+    bool isWaterLeakToilet() const { return _waterLeakToilet; }
+
     void setWaterLeakBathroom(bool detected) { _waterLeakBathroom = detected; }
+    bool isWaterLeakBathroom() const { return _waterLeakBathroom; }
+
     void setWaterLeakKitchen(bool detected) { _waterLeakKitchen = detected; }
+    bool isWaterLeakKitchen() const { return _waterLeakKitchen; }
+
     void setToiletDoorOpen(bool isOpen) { _toiletDoorOpen = isOpen; }
     void setToiletManholeOpen(bool isOpen) { _toiletManholeOpen = isOpen; }
 

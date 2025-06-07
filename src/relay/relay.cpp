@@ -21,6 +21,8 @@ void Relay::activate(bool isOn)
         digitalWrite(_pin, _reverse ? HIGH : LOW);
     }
 
+    _isActivated = isOn; 
+
     for (auto callback : _activateCallbacks) {
         callback(isOn);
     }

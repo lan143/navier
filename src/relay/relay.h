@@ -11,6 +11,7 @@ public:
 
     void init(EDHA::Device* device, std::string name, std::string id, int pin, bool reverse, std::string stateTopic, std::string commandTopic);
     void activate(bool isOn);
+    bool isActivated() const { return _isActivated; }
 
     void onActivate(ActivateFunction callback)
     {
@@ -26,4 +27,5 @@ private:
     int _pin;
     bool _reverse;
     std::list<ActivateFunction> _activateCallbacks;
+    bool _isActivated = false;
 };

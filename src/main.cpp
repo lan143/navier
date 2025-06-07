@@ -12,6 +12,8 @@
 
 #include "defines.h"
 #include "config.h"
+#include "automation/drawing.h"
+#include "automation/water.h"
 #include "command/command_consumer.h"
 #include "command/switch_command_consumer.h"
 #include "led/led.h"
@@ -43,7 +45,8 @@ FXEngine fxEngine(&led);
 Light shelfLight(&configMgr, &discoveryMgr, &led, &fxEngine);
 CommandConsumer commandConsumer(&waterRelay, &drawingRelay, &shelfLight);
 SwitchCommandConsumer shelfSwitchConsumer(&shelfLight);
-
+DrawingAutomation drawingAutomation(&drawingRelay, &stateMgr);
+WaterAutomation waterAutomation(&waterRelay, &stateMgr);
 EDWB::WirenBoard modbus(Serial2);
 BinarySensor binarySensor(&discoveryMgr, &stateMgr, &modbus);
 ComplexSensor complexSensor(&discoveryMgr, &stateMgr, &modbus);
@@ -152,4 +155,6 @@ void loop()
     binarySensor.loop();
     complexSensor.loop();
     stateMgr.loop();
+    drawingAutomation.loop();
+    waterAutomation.loop();
 }

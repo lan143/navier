@@ -19,7 +19,7 @@ public:
 
     void setTemperature(float_t temperature)
     {
-        if (_currentState.getTemperature() == -1000.0f || abs(temperature - _currentState.getTemperature()) > 0.5 || (_updateTemperatureLastTime + 1200000) < millis()) {
+        if (_currentState.getTemperature() == -1000.0f || abs(temperature - _currentState.getTemperature()) > 0.1 || (_updateTemperatureLastTime + 1200000) < millis()) {
             _currentState.setTemperature(temperature);
             _updateTemperatureLastTime = millis();
         }
@@ -35,7 +35,7 @@ public:
 
     void setAirQuality(int16_t airQuality)
     {
-        if (_currentState.getAirQuality() == -1 || abs(airQuality - _currentState.getAirQuality()) > 50 || (_updateAirQualityLastTime + 1200000) < millis()) {
+        if (_currentState.getAirQuality() == -1 || abs(airQuality - _currentState.getAirQuality()) > 50 || (_updateAirQualityLastTime + 300000) < millis()) {
             _currentState.setAirQuality(airQuality);
             _updateAirQualityLastTime = millis();
         }
