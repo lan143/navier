@@ -27,6 +27,8 @@ public:
     void loop();
 
     void setEnabled(bool enabled);
+    bool getEnabled() const { return _enabled; }
+
     void setBrightness(uint8_t brightness);
     void setColor(CRGB color);
 

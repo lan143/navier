@@ -12,6 +12,8 @@ public:
 
 private:
     unsigned long _lastCheckTime = 0;
+    uint32_t _activateDelayCounter = 0;
+    uint32_t _deactivateDelayCounter = 0;
 
 private:
     Relay* _drawingRelay = NULL;

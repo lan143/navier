@@ -29,6 +29,7 @@
 #define WB_MCM8_CHANNEL_WATER_LEAK_KITCHEN  3
 #define WB_MCM8_CHANNEL_TOILET_DOOR         4
 #define WB_MCM8_CHANNEL_TOILET_MANHOLE      5
+#define WB_MCM8_CHANNEL_LIGHT_SWITCH        7
 
 const char deviceName[] = CONTROLLER_NAME;
 const char deviceModel[] = "KC868-A2";

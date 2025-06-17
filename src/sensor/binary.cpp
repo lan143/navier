@@ -6,6 +6,8 @@ void BinarySensor::init(EDHA::Device* device, std::string stateTopic, uint8_t ad
     const char* chipID = EDUtils::getChipID();
     _mcm8Device = _modbus->addMCM8(address);
 
+    _mcm8Device->setInputMode(7, 1); // for switch
+
     _discoveryMgr->addBinarySensor(
         device,
         "Water leak toilet",
@@ -65,6 +67,8 @@ void BinarySensor::init(EDHA::Device* device, std::string stateTopic, uint8_t ad
         ->setPayloadOn("true")
         ->setPayloadOff("false")
         ->setDeviceClass(EDHA::deviceClassBinarySensorWindow);
+
+    _switchShortPressCount = _mcm8Device->getShortPressCount(WB_MCM8_CHANNEL_LIGHT_SWITCH);
 }
 
 void BinarySensor::loop()
@@ -75,6 +79,16 @@ void BinarySensor::loop()
         _stateMgr->setWaterLeakKitchen(_mcm8Device->getInputState(WB_MCM8_CHANNEL_WATER_LEAK_KITCHEN));
         _stateMgr->setToiletDoorOpen(!_mcm8Device->getInputState(WB_MCM8_CHANNEL_TOILET_DOOR));
         _stateMgr->setToiletManholeOpen(!_mcm8Device->getInputState(WB_MCM8_CHANNEL_TOILET_MANHOLE));
+
+        uint16_t shortPressCount = _mcm8Device->getShortPressCount(WB_MCM8_CHANNEL_LIGHT_SWITCH);
+        if (_switchShortPressCount != shortPressCount) {
+            for (auto& fn : _switchShortPressActivateCallbacks) {
+                fn();
+            }
+
+            _switchShortPressCount = shortPressCount;
+        }
+
         _lastInputUpdateTime = millis();
     }
 }

@@ -138,6 +138,9 @@ void setup()
     mqtt.subscribe(&shelfSwitchConsumer);
 
     binarySensor.init(device, configMgr.getConfig().mqttStateTopic, configMgr.getConfig().addressWBMCM8);
+    binarySensor.onSwitchShortPressActivate([&]() {
+        shelfLight.setEnabled(!shelfLight.getEnabled());
+    });
     complexSensor.init(device, configMgr.getConfig().mqttStateTopic, configMgr.getConfig().addressWBMSW);
 
     ESP_LOGI("setup", "complete");
