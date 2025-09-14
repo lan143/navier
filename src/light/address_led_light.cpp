@@ -1,14 +1,14 @@
 #include <ExtStrings.h>
 #include <Utils.h>
 
-#include "light.h"
+#include "address_led_light.h"
 
 #include "led/animation/on.h"
 #include "led/animation/off.h"
 #include "led/animation/change_color.h"
 #include "led/animation/change_brightness.h"
 
-void Light::init(LightConfig* config, EDHA::Device* device, std::string name, std::string id, std::string stateTopic, std::string commandTopic, std::string switchCommandTopic)
+void AddressLEDLight::init(LightConfig* config, EDHA::Device* device, std::string name, std::string id, std::string stateTopic, std::string commandTopic, std::string switchCommandTopic)
 {
     _config = config;
 
@@ -58,7 +58,7 @@ void Light::init(LightConfig* config, EDHA::Device* device, std::string name, st
         ->setRGBValueTemplate(colorStateTemplate);
 }
 
-void Light::loop()
+void AddressLEDLight::loop()
 {
     if ((_lastConfigUpdateTime + 60000) < millis()) {
         bool hasChanges = false;
@@ -85,7 +85,7 @@ void Light::loop()
     }
 }
 
-void Light::setEnabled(bool enabled)
+void AddressLEDLight::setEnabled(bool enabled)
 {
     if (_enabled == enabled) {
         return;
@@ -110,7 +110,7 @@ void Light::setEnabled(bool enabled)
     }
 }
 
-void Light::setBrightness(uint8_t brightness)
+void AddressLEDLight::setBrightness(uint8_t brightness)
 {
     if (_brightness == brightness) {
         return;
@@ -132,7 +132,7 @@ void Light::setBrightness(uint8_t brightness)
     }
 }
 
-void Light::setColor(CRGB color)
+void AddressLEDLight::setColor(CRGB color)
 {
     if (_color == color) {
         return;

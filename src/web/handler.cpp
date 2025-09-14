@@ -156,6 +156,8 @@ void Handler::init()
             entity["mqttIsHADiscovery"] = config.mqttIsHADiscovery;
             entity["mqttHADiscoveryPrefix"] = config.mqttHADiscoveryPrefix;
             entity["mqttCommandTopic"] = config.mqttCommandTopic;
+            entity["mqttShelfSwitchCommandTopic"] = config.mqttShelfSwitchCommandTopic;
+            entity["mqttMainLightSwitchCommandTopic"] = config.mqttMainLightSwitchCommandTopic;
             entity["mqttStateTopic"] = config.mqttStateTopic;
             entity["initialValue"] = _stateMgr->getCurrentState().getWaterConsumption();
         });
@@ -214,6 +216,8 @@ void Handler::init()
         const AsyncWebParameter* ishaDiscoveryEnabled = request->getParam("mqttIsHADiscovery", true);
         const AsyncWebParameter* stateTopic = request->getParam("stateTopic", true);
         const AsyncWebParameter* commandTopic = request->getParam("commandTopic", true);
+        const AsyncWebParameter* shelfSwitchCommandTopic = request->getParam("shelfSwitchCommandTopic", true);
+        const AsyncWebParameter* mainLightCommandTopic = request->getParam("mainLightSwitchCommandTopic", true);
 
         if (host->value().length() == 0 || host->value().length() > HOST_LEN-1) {
             request->send(422, "application/json", "{\"message\": \"MQTT host lenght invalid\"}");
@@ -256,6 +260,16 @@ void Handler::init()
             return;
         }
 
+        if (shelfSwitchCommandTopic->value().length() == 0 || shelfSwitchCommandTopic->value().length() > MQTT_TOPIC_LEN-1) {
+            request->send(422, "application/json", "{\"message\": \"command topic length invalid\"}");
+            return;
+        }
+
+        if (mainLightCommandTopic->value().length() == 0 || mainLightCommandTopic->value().length() > MQTT_TOPIC_LEN-1) {
+            request->send(422, "application/json", "{\"message\": \"command topic length invalid\"}");
+            return;
+        }
+
         strcpy(config.mqtt.host, host->value().c_str());
         config.mqtt.port = (uint16_t)mqttPort;
         strcpy(config.mqtt.login, login->value().c_str());
@@ -263,6 +277,8 @@ void Handler::init()
         strcpy(config.mqttHADiscoveryPrefix, haDiscoveryPrefix->value().c_str());
         strcpy(config.mqttStateTopic, stateTopic->value().c_str());
         strcpy(config.mqttCommandTopic, commandTopic->value().c_str());
+        strcpy(config.mqttShelfSwitchCommandTopic, shelfSwitchCommandTopic->value().c_str());
+        strcpy(config.mqttMainLightSwitchCommandTopic, mainLightCommandTopic->value().c_str());
 
         if (strcmp(ishaDiscoveryEnabled->value().c_str(), "true") == 0) {
             config.mqttIsHADiscovery = true;

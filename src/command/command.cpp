@@ -43,6 +43,20 @@ bool Command::unmarshalJSON(const char* data)
             }
         }
 
+        if (root.containsKey(F("mainLightBrightness"))) {
+            _mainLightBrightness = root[F("mainLightBrightness")].as<uint8_t>();
+            if (_mainLightBrightness > 0) {
+                _hasMainLightBrightness = true;
+            }
+        }
+
+        if (root.containsKey(F("mainLightColorTemp"))) {
+            _mainLightTempColor = root[F("mainLightColorTemp")].as<uint16_t>();
+            if (_mainLightTempColor > 0) {
+                _hasMainLightTempColor = true;
+            }
+        }
+
         return true;
     });
 }

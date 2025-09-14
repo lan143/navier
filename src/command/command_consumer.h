@@ -3,7 +3,8 @@
 #include <Arduino.h>
 #include <consumer.h>
 
-#include "light/light.h"
+#include "light/address_led_light.h"
+#include "light/main.h"
 #include "relay/relay.h"
 
 class CommandConsumer : public EDMQTT::Consumer
@@ -12,12 +13,14 @@ public:
     CommandConsumer(
         Relay* waterValveRelay,
         Relay* drawingRelay,
-        Light* shelfLight
-    ) : _waterValveRelay(waterValveRelay), _drawingRelay(drawingRelay), _shelfLight(shelfLight) {}
+        AddressLEDLight* shelfLight,
+        MainLight* mainLight
+    ) : _waterValveRelay(waterValveRelay), _drawingRelay(drawingRelay), _shelfLight(shelfLight), _mainLight(mainLight) {}
     void consume(std::string payload);
 
 private:
     Relay* _waterValveRelay;
     Relay* _drawingRelay;
-    Light* _shelfLight;
+    AddressLEDLight* _shelfLight;
+    MainLight* _mainLight;
 };

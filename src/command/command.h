@@ -20,6 +20,13 @@ public:
     bool hasShelfColor() { return _hasShelfColor; }
     CRGB getShelfColor() { return _shelfColor; }
 
+    bool hasMainLightBrightness() const { return _hasMainLightBrightness; }
+    uint8_t getMainLightBrightness() const { return _mainLightBrightness; }
+
+    bool hasMainLightTempColor() const { return _hasMainLightTempColor; }
+    uint16_t getMainLightTempColor() const { return _mainLightTempColor; }
+
+
 private:
     bool _hasWaterCloseRelay = false;
     bool _waterCloseRelay = false;
@@ -32,4 +39,10 @@ private:
 
     bool _hasShelfColor = false;
     CRGB _shelfColor = 0;
+
+    bool _hasMainLightBrightness = false;
+    uint8_t _mainLightBrightness = 0;
+
+    bool _hasMainLightTempColor = false;
+    uint16_t _mainLightTempColor = 0;
 };

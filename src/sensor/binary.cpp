@@ -20,7 +20,7 @@ void BinarySensor::init(EDHA::Device* device, std::string stateTopic, uint8_t ad
         ->setPayloadOff("false")
         ->setDeviceClass(EDHA::deviceClassBinarySensorProblem);
 
-    _discoveryMgr->addBinarySensor(
+    _discoveryMgr->addBinarySensor( 
         device,
         "Water leak bathroom",
         "water_leak_bathroom",

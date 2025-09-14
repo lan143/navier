@@ -48,6 +48,10 @@ public:
     void setToiletDoorOpen(bool isOpen) { _currentState.setToiletDoorOpen(isOpen); }
     void setToiletManholeOpen(bool isOpen) { _currentState.setToiletManholeOpen(isOpen); }
 
+    void setMainLightSwitchState(bool enabled) { _currentState.setMainLightSwitchState(enabled); }
+    void setMainLightBrightness(uint8_t brightness) { _currentState.setMainLightBrightness(brightness); }
+    void setMainLightTempColor(uint16_t temp) {_currentState.setMainLightTempColor(temp); }
+
 private:
     State _currentState;
     State _prevState;

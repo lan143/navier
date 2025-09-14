@@ -4,7 +4,7 @@ void DrawingAutomation::loop()
 {
     if ((_lastCheckTime + 1000) < millis()) {
         const State& state = _stateMgr->getCurrentState();
-        if (!_drawingRelay->isActivated() && (state.getAirQuality() >= 300 || state.getHumidity() >= 80.0f)) {
+        if (!_drawingRelay->isActivated() && (state.getAirQuality() >= 400 || state.getHumidity() >= 80.0f)) {
             _activateDelayCounter++;
             _deactivateDelayCounter = 0;
         } else if (_drawingRelay->isActivated() && (state.getAirQuality() < 200 && state.getHumidity() <= 60.0f)) {

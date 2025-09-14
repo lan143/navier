@@ -35,6 +35,7 @@ public:
     int16_t getAirQuality() const { return _airQuality; }
 
     void setMotionDetected(bool detected) { _motionDetected = detected; }
+    bool isMotionDetected() const { return _motionDetected; }
 
     void setWaterLeakToilet(bool detected) { _waterLeakToilet = detected; }
     bool isWaterLeakToilet() const { return _waterLeakToilet; }
@@ -46,12 +47,21 @@ public:
     bool isWaterLeakKitchen() const { return _waterLeakKitchen; }
 
     void setToiletDoorOpen(bool isOpen) { _toiletDoorOpen = isOpen; }
+    bool isToiletDoorOpen() const { return _toiletDoorOpen; }
+
     void setToiletManholeOpen(bool isOpen) { _toiletManholeOpen = isOpen; }
 
     bool isValid() const
     {
         return !(_temperature == -1000.0f || _humidity == -1000.0f || _airQuality == -1);
     }
+
+    void setMainLightSwitchState(bool enabled) { _mainLightSwitchState = enabled; }
+    bool isMainLightSwitchEnabled() const { return _mainLightSwitchState; }
+    void setMainLightBrightness(uint8_t brightness) { _mainLightBrightness = brightness; }
+    uint8_t getMainLightBrightness() const { return _mainLightBrightness; }
+    void setMainLightTempColor(uint16_t temp) { _mainLightTempColor = temp; }
+    uint16_t getMainLightTempColor() const { return _mainLightTempColor; }
 
 private:
     bool _waterCloseRelay = false;
@@ -69,4 +79,7 @@ private:
     bool _waterLeakKitchen = false;
     bool _toiletDoorOpen = false;
     bool _toiletManholeOpen = false;
+    bool _mainLightSwitchState = false;
+    uint8_t _mainLightBrightness = 0;
+    uint16_t _mainLightTempColor = 0;
 };

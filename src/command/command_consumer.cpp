@@ -28,4 +28,21 @@ void CommandConsumer::consume(std::string payload)
     if (command.hasShelfBrightness()) {
         _shelfLight->setBrightness(command.getShelfBightness());
     }
+
+    if (command.hasMainLightBrightness()) {
+        _mainLight->setBrightness(command.getMainLightBrightness());
+    }
+
+    if (command.hasMainLightTempColor()) {
+        uint16_t temperature = command.getMainLightTempColor();
+        if (temperature < 2700) {
+            temperature = 2700;
+        }
+
+        if (temperature > 6000) {
+            temperature = 6000;
+        }
+
+        _mainLight->setColorTemperature(temperature);
+    }
 }
