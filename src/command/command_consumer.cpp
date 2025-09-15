@@ -45,4 +45,8 @@ void CommandConsumer::consume(std::string payload)
 
         _mainLight->setColorTemperature(temperature);
     }
+
+    if (command.hasLightNightMode()) {
+        _lightAutomation->changeNightModeState(command.isLightNightMode());
+    }
 }

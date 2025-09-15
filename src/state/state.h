@@ -63,6 +63,9 @@ public:
     void setMainLightTempColor(uint16_t temp) { _mainLightTempColor = temp; }
     uint16_t getMainLightTempColor() const { return _mainLightTempColor; }
 
+    void setLightNightModeState(bool enabled) { _isLightNightMode = enabled; }
+    bool isLightNightMode() const { return _isLightNightMode; }
+
 private:
     bool _waterCloseRelay = false;
     bool _drawingRelay = false;
@@ -82,4 +85,5 @@ private:
     bool _mainLightSwitchState = false;
     uint8_t _mainLightBrightness = 0;
     uint16_t _mainLightTempColor = 0;
+    bool _isLightNightMode = false;
 };

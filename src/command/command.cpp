@@ -57,6 +57,11 @@ bool Command::unmarshalJSON(const char* data)
             }
         }
 
+        if (root.containsKey(F("lightNightMode"))) {
+            _hasLightNightMode = true;
+            _isLightNightMode = root[F("lightNightMode")].as<std::string>() == "true";
+        }
+
         return true;
     });
 }

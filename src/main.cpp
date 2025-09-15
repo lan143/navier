@@ -53,9 +53,9 @@ EDWB::WirenBoard modbus(Serial2);
 BinarySensor binarySensor(&discoveryMgr, &stateMgr, &modbus);
 ComplexSensor complexSensor(&discoveryMgr, &stateMgr, &modbus);
 MainLight mainLight(&discoveryMgr, &stateMgr, &modbus);
-CommandConsumer commandConsumer(&waterRelay, &drawingRelay, &shelfLight, &mainLight);
+LightAutomation lightAutomation(&discoveryMgr, &shelfLight, &mainLight, &stateMgr);
+CommandConsumer commandConsumer(&waterRelay, &drawingRelay, &shelfLight, &mainLight, &lightAutomation);
 SwitchCommandConsumer mainLightSwitchConsumer(&mainLight);
-LightAutomation lightAutomation(&shelfLight, &mainLight, &stateMgr);
 
 Handler handler(&configMgr, &meter, &networkMgr, &stateMgr, &healthCheck, &modbus);
 
@@ -149,13 +149,13 @@ void setup()
 
     binarySensor.init(device, configMgr.getConfig().mqttStateTopic, configMgr.getConfig().addressWBMCM8);
     binarySensor.onSwitchShortPressActivate([&]() {
-        bool newState = !shelfLight.getEnabled();
-        shelfLight.setEnabled(newState);
-        mainLight.setEnabled(newState);
+        lightAutomation.changeState(!lightAutomation.isEnabled());
     });
     complexSensor.init(device, configMgr.getConfig().mqttStateTopic, configMgr.getConfig().addressWBMSW);
 
     mainLight.init(device, configMgr.getConfig().mqttStateTopic, configMgr.getConfig().mqttCommandTopic, configMgr.getConfig().mqttMainLightSwitchCommandTopic, configMgr.getConfig().addressWBLED1);
+
+    lightAutomation.init(device, configMgr.getConfig().mqttStateTopic, configMgr.getConfig().mqttCommandTopic);
 
     ESP_LOGI("setup", "complete");
 }

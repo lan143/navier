@@ -22,7 +22,8 @@ bool State::operator==(State& other)
         && (*this)._toiletManholeOpen == other._toiletManholeOpen
         && (*this)._mainLightSwitchState == other._mainLightSwitchState
         && (*this)._mainLightBrightness == other._mainLightBrightness
-        && (*this)._mainLightTempColor == other._mainLightTempColor;
+        && (*this)._mainLightTempColor == other._mainLightTempColor
+        && (*this)._isLightNightMode == other._isLightNightMode;
 }
 
 std::string State::marshalJSON()
@@ -46,6 +47,7 @@ std::string State::marshalJSON()
         entity[F("mainLightSwitchState")] = _mainLightSwitchState ? "ON" : "OFF";
         entity[F("mainLightBrightness")] = _mainLightBrightness;
         entity[F("mainLightColorTemp")] = _mainLightTempColor;
+        entity[F("lightNightMode")] = _isLightNightMode ? "true" : "false";
     });
 
     return payload;

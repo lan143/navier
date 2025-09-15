@@ -26,6 +26,9 @@ public:
     bool hasMainLightTempColor() const { return _hasMainLightTempColor; }
     uint16_t getMainLightTempColor() const { return _mainLightTempColor; }
 
+    bool hasLightNightMode() const { return _hasLightNightMode; }
+    bool isLightNightMode() { return _isLightNightMode; }
+
 
 private:
     bool _hasWaterCloseRelay = false;
@@ -45,4 +48,7 @@ private:
 
     bool _hasMainLightTempColor = false;
     uint16_t _mainLightTempColor = 0;
+
+    bool _hasLightNightMode = false;
+    bool _isLightNightMode = false;
 };

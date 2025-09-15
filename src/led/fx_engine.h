@@ -1,5 +1,7 @@
 #pragma once
 
+#include <queue>
+
 #include "animation.h"
 #include "led.h"
 
@@ -11,16 +13,13 @@ public:
     void loop();
     void playAnimation(Animation* animation)
     {
-        if (_animation != NULL) {
-            delete _animation;
-        }
-
-        _animation = animation;
+        _animations.push(animation);
     }
 
 private:
     Led* _led;
     Animation* _animation = NULL;
+    std::queue<Animation*> _animations;
 
     uint64_t _lastUpdateTime;
 };

@@ -1,16 +1,13 @@
 #include "fx_engine.h"
 
-
-//void FXEngine::init()
-//{
-//    Test* animation = new Test(this);
-//    animation->init(130, 5);
-//    _animation = animation;
-//}
-
 void FXEngine::loop()
 {
     if ((_lastUpdateTime + 40) < millis()) {
+        if (_animation == NULL && !_animations.empty()) {
+            _animation = _animations.front();
+            _animations.pop();
+        }
+
         if (_animation != NULL) {
             _animation->update(millis() - _lastUpdateTime);
 

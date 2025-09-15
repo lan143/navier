@@ -8,16 +8,30 @@
 class LightAutomation
 {
 public:
-    LightAutomation(AddressLEDLight* shelf, MainLight* main, StateMgr* stateMgr) : _shelf(shelf), _main(main), _stateMgr(stateMgr) {}
+    LightAutomation(EDHA::DiscoveryMgr* discoveryMgr, AddressLEDLight* shelf, MainLight* main, StateMgr* stateMgr) : _discoveryMgr(discoveryMgr), _shelf(shelf), _main(main), _stateMgr(stateMgr) {}
 
+    void changeState(bool enabled);
+    void changeNightModeState(bool enabled);
+    bool isEnabled() const { return _enabled; }
+
+    void init(EDHA::Device* device, std::string stateTopic, std::string commandTopic);
     void loop();
+
+private:
+    void changeStateInternal(bool enabled, bool manual);
 
 private:
     uint64_t _lastCheckTime = 0;
     uint64_t _lastTriggerTime = 0;
+    uint64_t _lastManualControlTime = 0;
+
+    bool _enabled = false;
+    bool _nightMode = false;
+    bool _manual = false;
 
 private:
-    AddressLEDLight* _shelf;
-    MainLight* _main;
-    StateMgr* _stateMgr;
+    EDHA::DiscoveryMgr* _discoveryMgr = NULL;
+    AddressLEDLight* _shelf = NULL;
+    MainLight* _main = NULL;
+    StateMgr* _stateMgr = NULL;
 };

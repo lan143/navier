@@ -26,15 +26,14 @@ public:
 
     void update(uint64_t dt) override
     {
-        nblend(_from, _to, _counter);
+        CRGB current = nblend(_from, _to, _counter > 255 ? 255 : _counter);
 
         for (int i = 0; i < _led->getPixelsCount(); i++) {
-            _led->setPixel(i, _from);
+            _led->setPixel(i, current);
         }
 
-        if (_counter >= 250) {
+        if (_counter >= 255) {
             _counter = 255;
-        } else if (_counter == 255) {
             _isEnded = true;
         } else {
             _counter += 10;
@@ -49,6 +48,6 @@ public:
 private:
     CRGB _from;
     CRGB _to;
-    uint8_t _counter;
+    uint16_t _counter;
     bool _isEnded = false;
 };

@@ -52,6 +52,8 @@ public:
     void setMainLightBrightness(uint8_t brightness) { _currentState.setMainLightBrightness(brightness); }
     void setMainLightTempColor(uint16_t temp) {_currentState.setMainLightTempColor(temp); }
 
+    void setLightNightModeState(bool enabled) { _currentState.setLightNightModeState(enabled); }
+
 private:
     State _currentState;
     State _prevState;

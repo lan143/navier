@@ -102,7 +102,6 @@ void AddressLEDLight::setEnabled(bool enabled)
         Off* off = new Off(_led);
         off->init(_color);
         _fxEngine->playAnimation(off);
-        _led->setBrightness(0);
     }
 
     for (auto callback : _changeStateCallbacks) {
@@ -118,10 +117,7 @@ void AddressLEDLight::setBrightness(uint8_t brightness)
 
     _brightness = brightness;
 
-    if (!_enabled) {
-        setEnabled(true);
-        _led->setBrightness(brightness);
-    } else {
+    if (_enabled) {
         ChangeBrightness* animation = new ChangeBrightness(_led);
         animation->init(brightness);
         _fxEngine->playAnimation(animation);
@@ -138,11 +134,14 @@ void AddressLEDLight::setColor(CRGB color)
         return;
     }
 
-    ChangeColor* anim = new ChangeColor(_led);
-    anim->init(_color, color);
-    _fxEngine->playAnimation(anim);
-    
+    CRGB oldColor = _color;
     _color = color;
+
+    if (_enabled) {
+        ChangeColor* anim = new ChangeColor(_led);
+        anim->init(oldColor, color);
+        _fxEngine->playAnimation(anim);
+    }
 
     for (auto callback : _changeStateCallbacks) {
         callback(_enabled, _brightness, _color);
