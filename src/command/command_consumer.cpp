@@ -49,4 +49,12 @@ void CommandConsumer::consume(std::string payload)
     if (command.hasLightNightMode()) {
         _lightAutomation->changeNightModeState(command.isLightNightMode());
     }
+
+    if (command.hasBacklightBrightness()) {
+        _backlight->setBrightness(command.getBacklightBightness());
+    }
+
+    if (command.hasBacklightColor()) {
+        _backlight->setColor(command.getBacklightColor());
+    }
 }

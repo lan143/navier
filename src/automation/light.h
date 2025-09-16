@@ -3,12 +3,19 @@
 #include <Arduino.h>
 
 #include "light/address_led_light.h"
+#include "light/backlight.h"
 #include "light/main.h"
 
 class LightAutomation
 {
 public:
-    LightAutomation(EDHA::DiscoveryMgr* discoveryMgr, AddressLEDLight* shelf, MainLight* main, StateMgr* stateMgr) : _discoveryMgr(discoveryMgr), _shelf(shelf), _main(main), _stateMgr(stateMgr) {}
+    LightAutomation(
+        EDHA::DiscoveryMgr* discoveryMgr,
+        AddressLEDLight* shelf,
+        Backlight* backlight,
+        MainLight* main,
+        StateMgr* stateMgr
+    ) : _discoveryMgr(discoveryMgr), _shelf(shelf), _backlight(backlight), _main(main), _stateMgr(stateMgr) {}
 
     void changeState(bool enabled);
     void changeNightModeState(bool enabled);
@@ -32,6 +39,7 @@ private:
 private:
     EDHA::DiscoveryMgr* _discoveryMgr = NULL;
     AddressLEDLight* _shelf = NULL;
+    Backlight* _backlight = NULL;
     MainLight* _main = NULL;
     StateMgr* _stateMgr = NULL;
 };

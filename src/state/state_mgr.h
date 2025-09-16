@@ -54,6 +54,10 @@ public:
 
     void setLightNightModeState(bool enabled) { _currentState.setLightNightModeState(enabled); }
 
+    void setBacklightSwitchState(bool enabled) { _currentState.setBacklightSwitchState(enabled); }
+    void setBacklightBrightness(uint8_t brightness) { _currentState.setBacklightBrightness(brightness); }
+    void setBacklightColor(CRGB color) { _currentState.setBacklightColor(color); }
+
 private:
     State _currentState;
     State _prevState;

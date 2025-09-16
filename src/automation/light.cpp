@@ -40,9 +40,11 @@ void LightAutomation::changeStateInternal(bool enabled, bool manual)
         }
 
         _shelf->setEnabled(true);
+        _backlight->setEnabled(true);
     } else {
         _main->setEnabled(false);
         _shelf->setEnabled(false);
+        _backlight->setEnabled(false);
     }
 
     _enabled = enabled;
@@ -53,10 +55,21 @@ void LightAutomation::changeNightModeState(bool enabled)
     if (enabled) {
         _shelf->setColor(0xff0000);
         _shelf->setBrightness(26); // 10% of max
+
+        _backlight->setColor(0xff0000);
+        _backlight->setBrightness(10); // 10% of max
+
         _main->setEnabled(false);
     } else {
         _shelf->setColor(0xffffff);
         _shelf->setBrightness(255);
+
+        _backlight->setColor(0xffffff);
+        _backlight->setBrightness(100);
+    
+        if (_enabled) {
+            _main->setEnabled(true);
+        }
     }
 
     _nightMode = enabled;

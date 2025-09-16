@@ -21,6 +21,7 @@
 #include "led/led.h"
 #include "led/fx_engine.h"
 #include "light/address_led_light.h"
+#include "light/backlight.h"
 #include "light/main.h"
 #include "meter/meter.h"
 #include "meter/storage.h"
@@ -34,8 +35,10 @@
 
 EDConfig::ConfigMgr<Config> configMgr(EEPROM_SIZE);
 NetworkMgr networkMgr(configMgr.getConfig(), true);
-EDHealthCheck::HealthCheck healthCheck;
 EDMQTT::MQTT mqtt(configMgr.getConfig().mqtt);
+EDWB::WirenBoard modbus(Serial2);
+
+EDHealthCheck::HealthCheck healthCheck;
 EDHA::DiscoveryMgr discoveryMgr;
 Relay waterRelay(&discoveryMgr);
 Relay drawingRelay(&discoveryMgr);
@@ -43,19 +46,24 @@ StateProducer stateProducer(&mqtt);
 StateMgr stateMgr(&stateProducer);
 RingStorage ringStorage;
 Meter meter(&discoveryMgr, &ringStorage, &stateMgr);
+ 
 Led led;
 FXEngine fxEngine(&led);
 AddressLEDLight shelfLight(&configMgr, &discoveryMgr, &led, &fxEngine);
-SwitchCommandConsumer shelfSwitchConsumer(&shelfLight);
-DrawingAutomation drawingAutomation(&drawingRelay, &stateMgr);
-WaterAutomation waterAutomation(&waterRelay, &stateMgr);
-EDWB::WirenBoard modbus(Serial2);
+MainLight mainLight(&discoveryMgr, &stateMgr, &modbus);
+Backlight backlight(&discoveryMgr, &stateMgr, &modbus);
+
 BinarySensor binarySensor(&discoveryMgr, &stateMgr, &modbus);
 ComplexSensor complexSensor(&discoveryMgr, &stateMgr, &modbus);
-MainLight mainLight(&discoveryMgr, &stateMgr, &modbus);
-LightAutomation lightAutomation(&discoveryMgr, &shelfLight, &mainLight, &stateMgr);
-CommandConsumer commandConsumer(&waterRelay, &drawingRelay, &shelfLight, &mainLight, &lightAutomation);
+
+DrawingAutomation drawingAutomation(&drawingRelay, &stateMgr);
+WaterAutomation waterAutomation(&waterRelay, &stateMgr);
+LightAutomation lightAutomation(&discoveryMgr, &shelfLight, &backlight, &mainLight, &stateMgr);
+
+SwitchCommandConsumer shelfSwitchConsumer(&shelfLight);
+SwitchCommandConsumer backlightSwitchConsumer(&backlight);
 SwitchCommandConsumer mainLightSwitchConsumer(&mainLight);
+CommandConsumer commandConsumer(&waterRelay, &drawingRelay, &shelfLight, &backlight, &mainLight, &lightAutomation);
 
 Handler handler(&configMgr, &meter, &networkMgr, &stateMgr, &healthCheck, &modbus);
 
@@ -75,6 +83,7 @@ void setup()
         snprintf(config.mqttStateTopic, MQTT_TOPIC_LEN, "navier/%s/state", EDUtils::getChipID());
         snprintf(config.mqttCommandTopic, MQTT_TOPIC_LEN, "navier/%s/set", EDUtils::getChipID());
         snprintf(config.mqttShelfSwitchCommandTopic, MQTT_TOPIC_LEN, "navier/%s/shelf/switch", EDUtils::getChipID());
+        snprintf(config.mqttBacklightSwitchCommandTopic, MQTT_TOPIC_LEN, "navier/%s/backlight/switch", EDUtils::getChipID());
         snprintf(config.mqttMainLightSwitchCommandTopic, MQTT_TOPIC_LEN, "navier/%s/main/switch", EDUtils::getChipID());
         snprintf(config.mqttHADiscoveryPrefix, MQTT_TOPIC_LEN, "homeassistant");
         config.modbusSpeed = 9600;
@@ -144,6 +153,9 @@ void setup()
     shelfSwitchConsumer.init(configMgr.getConfig().mqttShelfSwitchCommandTopic);
     mqtt.subscribe(&shelfSwitchConsumer);
 
+    backlightSwitchConsumer.init(configMgr.getConfig().mqttBacklightSwitchCommandTopic);
+    mqtt.subscribe(&backlightSwitchConsumer);
+
     mainLightSwitchConsumer.init(configMgr.getConfig().mqttMainLightSwitchCommandTopic);
     mqtt.subscribe(&mainLightSwitchConsumer);
 
@@ -153,6 +165,7 @@ void setup()
     });
     complexSensor.init(device, configMgr.getConfig().mqttStateTopic, configMgr.getConfig().addressWBMSW);
 
+    backlight.init(device, configMgr.getConfig().mqttStateTopic, configMgr.getConfig().mqttCommandTopic, configMgr.getConfig().mqttBacklightSwitchCommandTopic, configMgr.getConfig().addressWBLED2);
     mainLight.init(device, configMgr.getConfig().mqttStateTopic, configMgr.getConfig().mqttCommandTopic, configMgr.getConfig().mqttMainLightSwitchCommandTopic, configMgr.getConfig().addressWBLED1);
 
     lightAutomation.init(device, configMgr.getConfig().mqttStateTopic, configMgr.getConfig().mqttCommandTopic);

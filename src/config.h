@@ -36,6 +36,7 @@ struct Config
     char mqttHADiscoveryPrefix[MQTT_TOPIC_LEN] = {0};
     char mqttCommandTopic[MQTT_TOPIC_LEN] = {0};
     char mqttShelfSwitchCommandTopic[MQTT_TOPIC_LEN] = {0};
+    char mqttBacklightSwitchCommandTopic[MQTT_TOPIC_LEN] = {0};
     char mqttMainLightSwitchCommandTopic[MQTT_TOPIC_LEN] = {0};
     char mqttStateTopic[MQTT_TOPIC_LEN] = {0};
 

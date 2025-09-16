@@ -29,6 +29,12 @@ public:
     bool hasLightNightMode() const { return _hasLightNightMode; }
     bool isLightNightMode() { return _isLightNightMode; }
 
+    bool hasBacklightBrightness() { return _hasBacklightBrightness; }
+    uint8_t getBacklightBightness() { return _backlightBrightness; }
+
+    bool hasBacklightColor() { return _hasBacklightColor; }
+    CRGB getBacklightColor() { return _backlightColor; }
+
 
 private:
     bool _hasWaterCloseRelay = false;
@@ -51,4 +57,10 @@ private:
 
     bool _hasLightNightMode = false;
     bool _isLightNightMode = false;
+
+    bool _hasBacklightBrightness = false;
+    uint8_t _backlightBrightness = 0;
+
+    bool _hasBacklightColor = false;
+    CRGB _backlightColor = 0;
 };

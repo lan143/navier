@@ -62,6 +62,32 @@ bool Command::unmarshalJSON(const char* data)
             _isLightNightMode = root[F("lightNightMode")].as<std::string>() == "true";
         }
 
+        if (root.containsKey(F("backlightBrightness"))) {
+            _backlightBrightness = root[F("backlightBrightness")].as<uint8_t>();
+            if (_backlightBrightness > 0) {
+                _hasBacklightBrightness = true;
+            }
+        }
+
+        if (root.containsKey(F("backlightColor"))) {
+            const char* color = root[F("backlightColor")].as<const char*>();
+            std::vector<std::string> rgb = EDUtils::split(color, ",");
+
+            if (rgb.size() == 3) {
+                _hasBacklightColor = true;
+
+                for (int i = 0; i < 3; i++) {
+                    int c = 0;
+                    if (EDUtils::str2int(&c, rgb[i].c_str(), 10) != EDUtils::STR2INT_SUCCESS) {
+                        _hasBacklightColor = false;
+                        break;
+                    }
+
+                    _backlightColor = _backlightColor.as_uint32_t() | (c << (16 - i * 8));
+                }
+            }
+        }
+
         return true;
     });
 }

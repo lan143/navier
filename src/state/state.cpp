@@ -23,7 +23,10 @@ bool State::operator==(State& other)
         && (*this)._mainLightSwitchState == other._mainLightSwitchState
         && (*this)._mainLightBrightness == other._mainLightBrightness
         && (*this)._mainLightTempColor == other._mainLightTempColor
-        && (*this)._isLightNightMode == other._isLightNightMode;
+        && (*this)._isLightNightMode == other._isLightNightMode
+        && (*this)._backlightSwitchState == other._backlightSwitchState
+        && (*this)._backlightBrightness == other._backlightBrightness
+        && (*this)._backlightColor == _backlightColor;
 }
 
 std::string State::marshalJSON()
@@ -48,6 +51,9 @@ std::string State::marshalJSON()
         entity[F("mainLightBrightness")] = _mainLightBrightness;
         entity[F("mainLightColorTemp")] = _mainLightTempColor;
         entity[F("lightNightMode")] = _isLightNightMode ? "true" : "false";
+        entity[F("backlightSwitchState")] = _backlightSwitchState ? "ON" : "OFF";
+        entity[F("backlightBrightness")] = _backlightBrightness;
+        entity[F("backlightColor")] = EDUtils::formatString("%d,%d,%d", _backlightColor.r, _backlightColor.g, _backlightColor.b);
     });
 
     return payload;

@@ -51,11 +51,6 @@ public:
 
     void setToiletManholeOpen(bool isOpen) { _toiletManholeOpen = isOpen; }
 
-    bool isValid() const
-    {
-        return !(_temperature == -1000.0f || _humidity == -1000.0f || _airQuality == -1);
-    }
-
     void setMainLightSwitchState(bool enabled) { _mainLightSwitchState = enabled; }
     bool isMainLightSwitchEnabled() const { return _mainLightSwitchState; }
     void setMainLightBrightness(uint8_t brightness) { _mainLightBrightness = brightness; }
@@ -65,6 +60,15 @@ public:
 
     void setLightNightModeState(bool enabled) { _isLightNightMode = enabled; }
     bool isLightNightMode() const { return _isLightNightMode; }
+
+    void setBacklightSwitchState(bool enabled) { _backlightSwitchState = enabled; }
+    void setBacklightBrightness(uint8_t brightness) { _backlightBrightness = brightness; }
+    void setBacklightColor(CRGB color) { _backlightColor = color; }
+
+    bool isValid() const
+    {
+        return !(_temperature == -1000.0f || _humidity == -1000.0f || _airQuality == -1);
+    }
 
 private:
     bool _waterCloseRelay = false;
@@ -86,4 +90,8 @@ private:
     uint8_t _mainLightBrightness = 0;
     uint16_t _mainLightTempColor = 0;
     bool _isLightNightMode = false;
+
+    bool _backlightSwitchState = false;
+    uint8_t _backlightBrightness = 0;
+    CRGB _backlightColor;
 };
