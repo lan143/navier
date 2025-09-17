@@ -67,7 +67,7 @@ public:
 
     bool isValid() const
     {
-        return !(_temperature == -1000.0f || _humidity == -1000.0f || _airQuality == -1);
+        return _temperature != -1000.0f && _humidity != -1000.0f && _airQuality != -1;
     }
 
 private:
