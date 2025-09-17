@@ -26,7 +26,7 @@ bool State::operator==(State& other)
         && (*this)._isLightNightMode == other._isLightNightMode
         && (*this)._backlightSwitchState == other._backlightSwitchState
         && (*this)._backlightBrightness == other._backlightBrightness
-        && (*this)._backlightColor == _backlightColor;
+        && (*this)._backlightColor == other._backlightColor;
 }
 
 std::string State::marshalJSON()
