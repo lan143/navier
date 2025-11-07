@@ -1,21 +1,17 @@
 #pragma once
 
-#include <discovery.h>
+#include <FastLED.h>
 #include <wirenboard.h>
 #include <device/wb_led.h>
-#include "state/state_mgr.h"
+
 #include "light.h"
 
 class Backlight : public Light
 {
 public:
-    Backlight(
-        EDHA::DiscoveryMgr* discoveryMgr,
-        StateMgr* stateMgr,
-        EDWB::WirenBoard* modbus
-    ) : _discoveryMgr(discoveryMgr), _stateMgr(stateMgr), _modbus(modbus) {}
+    Backlight(EDWB::WirenBoard* modbus) : _modbus(modbus) {}
 
-    void init(EDHA::Device* device, std::string stateTopic, std::string commandTopic, std::string switchCommandTopic, uint8_t address);
+    void init(uint8_t address);
     void setEnabled(bool enabled);
     void setBrightness(uint8_t brightness);
     void setColor(CRGB color);
@@ -29,8 +25,6 @@ private:
     CRGB _color = 0xffffff;
 
 private:
-    EDHA::DiscoveryMgr* _discoveryMgr = NULL;
-    StateMgr* _stateMgr = NULL;
     EDWB::WirenBoard* _modbus = NULL;
     EDWB::LED* _led2 = NULL;
 };

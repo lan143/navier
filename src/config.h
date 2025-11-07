@@ -3,7 +3,7 @@
 #include <Arduino.h>
 #include <WiFi.h>
 #include <mqtt_config.h>
-#include "light/config.h"
+#include "automation/light_state.h"
 
 #define CURRENT_VERSION 1
 
@@ -35,9 +35,7 @@ struct Config
     bool mqttIsHADiscovery = true;
     char mqttHADiscoveryPrefix[MQTT_TOPIC_LEN] = {0};
     char mqttCommandTopic[MQTT_TOPIC_LEN] = {0};
-    char mqttShelfSwitchCommandTopic[MQTT_TOPIC_LEN] = {0};
-    char mqttBacklightSwitchCommandTopic[MQTT_TOPIC_LEN] = {0};
-    char mqttMainLightSwitchCommandTopic[MQTT_TOPIC_LEN] = {0};
+    char mqttLightSwitchCommandTopic[MQTT_TOPIC_LEN] = {0};
     char mqttStateTopic[MQTT_TOPIC_LEN] = {0};
 
     // modbus
@@ -48,5 +46,5 @@ struct Config
     uint8_t addressWBLED2 = 0;
 
     // Light
-    LightConfig shelfLight;
+    LightState lightState;
 };

@@ -5,8 +5,8 @@ void SwitchCommandConsumer::consume(std::string payload)
     ESP_LOGD("switch_command_consumer", "handle");
 
     if (strcmp(payload.c_str(), "ON") == 0) {
-        _light->setEnabled(true);
+        _light->changeState(true);
     } else {
-        _light->setEnabled(false);
+        _light->changeState(false);
     }
 }

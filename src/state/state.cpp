@@ -8,9 +8,6 @@ bool State::operator==(State& other)
     return (*this)._waterCloseRelay == other._waterCloseRelay
         && (*this)._drawingRelay == other._drawingRelay
         && (*this)._waterConsumption == other._waterConsumption
-        && (*this)._shelfSwitchState == other._shelfSwitchState
-        && (*this)._shelfBrightness == other._shelfBrightness
-        && (*this)._shelfColor == other._shelfColor
         && (*this)._temperature == other._temperature
         && (*this)._humidity == other._humidity
         && (*this)._airQuality == other._airQuality
@@ -20,13 +17,11 @@ bool State::operator==(State& other)
         && (*this)._waterLeakKitchen == other._waterLeakKitchen
         && (*this)._toiletDoorOpen == other._toiletDoorOpen
         && (*this)._toiletManholeOpen == other._toiletManholeOpen
-        && (*this)._mainLightSwitchState == other._mainLightSwitchState
-        && (*this)._mainLightBrightness == other._mainLightBrightness
-        && (*this)._mainLightTempColor == other._mainLightTempColor
         && (*this)._isLightNightMode == other._isLightNightMode
-        && (*this)._backlightSwitchState == other._backlightSwitchState
-        && (*this)._backlightBrightness == other._backlightBrightness
-        && (*this)._backlightColor == other._backlightColor;
+        && (*this)._lightSwitchState == other._lightSwitchState
+        && (*this)._lightBrightness == other._lightBrightness
+        && (*this)._lightColor == other._lightColor
+        && (*this)._lightTempColor == other._lightTempColor;
 }
 
 std::string State::marshalJSON()
@@ -35,9 +30,6 @@ std::string State::marshalJSON()
         entity[F("waterCloseRelay")] = _waterCloseRelay ? "true" : "false";
         entity[F("drawingRelay")] = _drawingRelay ? "true" : "false";
         entity[F("waterConsumption")] = _waterConsumption;
-        entity[F("shelfSwitchState")] = _shelfSwitchState ? "ON" : "OFF";
-        entity[F("shelfBrightness")] = _shelfBrightness;
-        entity[F("shelfColor")] = EDUtils::formatString("%d,%d,%d", _shelfColor.r, _shelfColor.g, _shelfColor.b);
         entity[F("temperature")] = _temperature;
         entity[F("humidity")] = _humidity;
         entity[F("airQuality")] = _airQuality;
@@ -47,13 +39,11 @@ std::string State::marshalJSON()
         entity[F("waterLeakKitchen")] = _waterLeakKitchen ? "true" : "false";
         entity[F("toiletDoorOpen")] = _toiletDoorOpen ? "true" : "false";
         entity[F("toiletManholeOpen")] = _toiletManholeOpen ? "true" : "false";
-        entity[F("mainLightSwitchState")] = _mainLightSwitchState ? "ON" : "OFF";
-        entity[F("mainLightBrightness")] = _mainLightBrightness;
-        entity[F("mainLightColorTemp")] = _mainLightTempColor;
         entity[F("lightNightMode")] = _isLightNightMode ? "true" : "false";
-        entity[F("backlightSwitchState")] = _backlightSwitchState ? "ON" : "OFF";
-        entity[F("backlightBrightness")] = _backlightBrightness;
-        entity[F("backlightColor")] = EDUtils::formatString("%d,%d,%d", _backlightColor.r, _backlightColor.g, _backlightColor.b);
+        entity[F("lightSwitchState")] = _lightSwitchState ? "ON" : "OFF";
+        entity[F("lightBrightness")] = _lightBrightness;
+        entity[F("lightColor")] = EDUtils::formatString("%d,%d,%d", _lightColor.r, _lightColor.g, _lightColor.b);
+        entity[F("lightTempColor")] = _lightTempColor;
     });
 
     return payload;

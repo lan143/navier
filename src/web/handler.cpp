@@ -156,9 +156,7 @@ void Handler::init()
             entity["mqttIsHADiscovery"] = config.mqttIsHADiscovery;
             entity["mqttHADiscoveryPrefix"] = config.mqttHADiscoveryPrefix;
             entity["mqttCommandTopic"] = config.mqttCommandTopic;
-            entity["mqttBacklightSwitchCommandTopic"] = config.mqttBacklightSwitchCommandTopic;
-            entity["mqttShelfSwitchCommandTopic"] = config.mqttShelfSwitchCommandTopic;
-            entity["mqttMainLightSwitchCommandTopic"] = config.mqttMainLightSwitchCommandTopic;
+            entity["mqttLightSwitchCommandTopic"] = config.mqttLightSwitchCommandTopic;
             entity["mqttStateTopic"] = config.mqttStateTopic;
             entity["initialValue"] = _stateMgr->getCurrentState().getWaterConsumption();
         });
@@ -217,9 +215,7 @@ void Handler::init()
         const AsyncWebParameter* ishaDiscoveryEnabled = request->getParam("mqttIsHADiscovery", true);
         const AsyncWebParameter* stateTopic = request->getParam("stateTopic", true);
         const AsyncWebParameter* commandTopic = request->getParam("commandTopic", true);
-        const AsyncWebParameter* backlightSwitchCommandTopic = request->getParam("backlightSwitchCommandTopic", true);
-        const AsyncWebParameter* shelfSwitchCommandTopic = request->getParam("shelfSwitchCommandTopic", true);
-        const AsyncWebParameter* mainLightCommandTopic = request->getParam("mainLightSwitchCommandTopic", true);
+        const AsyncWebParameter* lightCommandTopic = request->getParam("lightSwitchCommandTopic", true);
 
         if (host->value().length() == 0 || host->value().length() > HOST_LEN-1) {
             request->send(422, "application/json", "{\"message\": \"MQTT host lenght invalid\"}");
@@ -262,18 +258,8 @@ void Handler::init()
             return;
         }
 
-        if (backlightSwitchCommandTopic->value().length() == 0 || backlightSwitchCommandTopic->value().length() > MQTT_TOPIC_LEN-1) {
-            request->send(422, "application/json", "{\"message\": \"backlight command topic length invalid\"}");
-            return;
-        }
-
-        if (shelfSwitchCommandTopic->value().length() == 0 || shelfSwitchCommandTopic->value().length() > MQTT_TOPIC_LEN-1) {
-            request->send(422, "application/json", "{\"message\": \"shelf light command topic length invalid\"}");
-            return;
-        }
-
-        if (mainLightCommandTopic->value().length() == 0 || mainLightCommandTopic->value().length() > MQTT_TOPIC_LEN-1) {
-            request->send(422, "application/json", "{\"message\": \"main light command topic length invalid\"}");
+        if (lightCommandTopic->value().length() == 0 || lightCommandTopic->value().length() > MQTT_TOPIC_LEN-1) {
+            request->send(422, "application/json", "{\"message\": \"light command topic length invalid\"}");
             return;
         }
 
@@ -284,9 +270,7 @@ void Handler::init()
         strcpy(config.mqttHADiscoveryPrefix, haDiscoveryPrefix->value().c_str());
         strcpy(config.mqttStateTopic, stateTopic->value().c_str());
         strcpy(config.mqttCommandTopic, commandTopic->value().c_str());
-        strcpy(config.mqttBacklightSwitchCommandTopic, backlightSwitchCommandTopic->value().c_str());
-        strcpy(config.mqttShelfSwitchCommandTopic, shelfSwitchCommandTopic->value().c_str());
-        strcpy(config.mqttMainLightSwitchCommandTopic, mainLightCommandTopic->value().c_str());
+        strcpy(config.mqttLightSwitchCommandTopic, lightCommandTopic->value().c_str());
 
         if (strcmp(ishaDiscoveryEnabled->value().c_str(), "true") == 0) {
             config.mqttIsHADiscovery = true;

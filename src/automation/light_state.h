@@ -3,9 +3,11 @@
 #include <Arduino.h>
 #include <FastLED.h>
 
-struct LightConfig
+struct LightState
 {
+    bool nightMode = false;
     bool enabled = false;
     uint8_t brightness = 255;
-    CRGB color = CRGB::FairyLightNCC;
+    uint16_t temperature = 6000;
+    CRGB color = CRGB::White;
 };

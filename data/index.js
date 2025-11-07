@@ -26,9 +26,7 @@ function loadSettings() {
             $('form#mqtt input[name=mqttLogin]').val(data.mqttLogin);
             $('form#mqtt input[name=mqttPassword]').val(data.mqttPassword);
             $('form#mqtt input[name=mqttCommandTopic]').val(data.mqttCommandTopic);
-            $('form#mqtt input[name=mqttBacklightSwitchCommandTopic]').val(data.mqttBacklightSwitchCommandTopic);
-            $('form#mqtt input[name=mqttShelfSwitchCommandTopic]').val(data.mqttShelfSwitchCommandTopic);
-            $('form#mqtt input[name=mqttMainLightSwitchCommandTopic]').val(data.mqttMainLightSwitchCommandTopic);
+            $('form#mqtt input[name=mqttLightSwitchCommandTopic]').val(data.mqttLightSwitchCommandTopic);
             $('form#mqtt input[name=mqttStateTopic]').val(data.mqttStateTopic);
             $('form#mqtt input[name=mqttHADiscoveryPrefix]').val(data.mqttHADiscoveryPrefix);
 
@@ -148,9 +146,7 @@ $(function() {
                 haDiscoveryPrefix: $(this).find('input[name=mqttHADiscoveryPrefix]').val(),
                 mqttIsHADiscovery: $(this).find('input[name=mqttIsHADiscovery]').is(':checked'),
                 commandTopic: $(this).find('input[name=mqttCommandTopic]').val(),
-                backlightSwitchCommandTopic: $(this).find('input[name=mqttBacklightSwitchCommandTopic]').val(),
-                shelfSwitchCommandTopic: $(this).find('input[name=mqttShelfSwitchCommandTopic]').val(),
-                mainLightSwitchCommandTopic: $(this).find('input[name=mqttMainLightSwitchCommandTopic]').val(),
+                lightSwitchCommandTopic: $(this).find('input[name=mqttLightSwitchCommandTopic]').val(),
                 stateTopic: $(this).find('input[name=mqttStateTopic]').val()
             },
             success: function (data) {

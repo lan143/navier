@@ -14,26 +14,17 @@ public:
     bool hasDrawingRelay() { return _hasDrawingRelay; }
     bool isDrawingRelay() { return _drawingRelay; }
 
-    bool hasShelfBrightness() { return _hasShelfBrightness; }
-    uint8_t getShelfBightness() { return _shelfBightness; }
-
-    bool hasShelfColor() { return _hasShelfColor; }
-    CRGB getShelfColor() { return _shelfColor; }
-
-    bool hasMainLightBrightness() const { return _hasMainLightBrightness; }
-    uint8_t getMainLightBrightness() const { return _mainLightBrightness; }
-
-    bool hasMainLightTempColor() const { return _hasMainLightTempColor; }
-    uint16_t getMainLightTempColor() const { return _mainLightTempColor; }
-
     bool hasLightNightMode() const { return _hasLightNightMode; }
     bool isLightNightMode() { return _isLightNightMode; }
 
-    bool hasBacklightBrightness() { return _hasBacklightBrightness; }
-    uint8_t getBacklightBightness() { return _backlightBrightness; }
+    bool hasLightBrightness() const { return _hasLightBrightness; }
+    uint8_t getLightBightness() const { return _lightBrightness; }
 
-    bool hasBacklightColor() { return _hasBacklightColor; }
-    CRGB getBacklightColor() { return _backlightColor; }
+    bool hasLightColor() const { return _hasLightColor; }
+    CRGB getLightColor() const { return _lightColor; }
+
+    bool hasLightTempColor() const { return _hasLightTempColor; }
+    uint16_t getLightTempColor() const { return _lightTempColor; }
 
 
 private:
@@ -43,24 +34,15 @@ private:
     bool _hasDrawingRelay = false;
     bool _drawingRelay = false;
 
-    bool _hasShelfBrightness = false;
-    uint8_t _shelfBightness = 0;
-
-    bool _hasShelfColor = false;
-    CRGB _shelfColor = 0;
-
-    bool _hasMainLightBrightness = false;
-    uint8_t _mainLightBrightness = 0;
-
-    bool _hasMainLightTempColor = false;
-    uint16_t _mainLightTempColor = 0;
-
     bool _hasLightNightMode = false;
     bool _isLightNightMode = false;
 
-    bool _hasBacklightBrightness = false;
-    uint8_t _backlightBrightness = 0;
+    bool _hasLightBrightness = false;
+    uint8_t _lightBrightness = 0;
 
-    bool _hasBacklightColor = false;
-    CRGB _backlightColor = 0;
+    bool _hasLightColor = false;
+    CRGB _lightColor = 0;
+
+    bool _hasLightTempColor = false;
+    uint16_t _lightTempColor = 0;
 };

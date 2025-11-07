@@ -46,24 +46,22 @@ StateProducer stateProducer(&mqtt);
 StateMgr stateMgr(&stateProducer);
 RingStorage ringStorage;
 Meter meter(&discoveryMgr, &ringStorage, &stateMgr);
- 
+
 Led led;
 FXEngine fxEngine(&led);
-AddressLEDLight shelfLight(&configMgr, &discoveryMgr, &led, &fxEngine);
-MainLight mainLight(&discoveryMgr, &stateMgr, &modbus);
-Backlight backlight(&discoveryMgr, &stateMgr, &modbus);
+AddressLEDLight shelfLight(&led, &fxEngine);
+MainLight mainLight(&modbus);
+Backlight backlight(&modbus);
 
 BinarySensor binarySensor(&discoveryMgr, &stateMgr, &modbus);
 ComplexSensor complexSensor(&discoveryMgr, &stateMgr, &modbus);
 
 DrawingAutomation drawingAutomation(&drawingRelay, &stateMgr);
 WaterAutomation waterAutomation(&waterRelay, &stateMgr);
-LightAutomation lightAutomation(&discoveryMgr, &shelfLight, &backlight, &mainLight, &stateMgr);
+LightAutomation lightAutomation(&configMgr, &discoveryMgr, &shelfLight, &backlight, &mainLight, &stateMgr);
 
-SwitchCommandConsumer shelfSwitchConsumer(&shelfLight);
-SwitchCommandConsumer backlightSwitchConsumer(&backlight);
-SwitchCommandConsumer mainLightSwitchConsumer(&mainLight);
-CommandConsumer commandConsumer(&waterRelay, &drawingRelay, &shelfLight, &backlight, &mainLight, &lightAutomation);
+SwitchCommandConsumer lightSwitchConsumer(&lightAutomation);
+CommandConsumer commandConsumer(&waterRelay, &drawingRelay, &lightAutomation);
 
 Handler handler(&configMgr, &meter, &networkMgr, &stateMgr, &healthCheck, &modbus);
 
@@ -82,9 +80,7 @@ void setup()
         snprintf(config.wifiAPSSID, WIFI_SSID_LEN, "Navier_%s", EDUtils::getMacAddress().c_str());
         snprintf(config.mqttStateTopic, MQTT_TOPIC_LEN, "navier/%s/state", EDUtils::getChipID());
         snprintf(config.mqttCommandTopic, MQTT_TOPIC_LEN, "navier/%s/set", EDUtils::getChipID());
-        snprintf(config.mqttShelfSwitchCommandTopic, MQTT_TOPIC_LEN, "navier/%s/shelf/switch", EDUtils::getChipID());
-        snprintf(config.mqttBacklightSwitchCommandTopic, MQTT_TOPIC_LEN, "navier/%s/backlight/switch", EDUtils::getChipID());
-        snprintf(config.mqttMainLightSwitchCommandTopic, MQTT_TOPIC_LEN, "navier/%s/main/switch", EDUtils::getChipID());
+        snprintf(config.mqttLightSwitchCommandTopic, MQTT_TOPIC_LEN, "navier/%s/light/switch", EDUtils::getChipID());
         snprintf(config.mqttHADiscoveryPrefix, MQTT_TOPIC_LEN, "homeassistant");
         config.modbusSpeed = 9600;
         config.addressWBMSW = 1;
@@ -108,6 +104,8 @@ void setup()
     networkMgr.OnConnect([&](bool isConnected) {
         if (isConnected) {
             mqtt.connect();
+        } else {
+            mqtt.disconnect();
         }
     });
     healthCheck.registerService(&mqtt);
@@ -146,18 +144,8 @@ void setup()
     });
 
     led.init(LED_PIN);
-    shelfLight.init(&(configMgr.getConfig().shelfLight), device, "Shelf light", "shelf", configMgr.getConfig().mqttStateTopic, configMgr.getConfig().mqttCommandTopic, configMgr.getConfig().mqttShelfSwitchCommandTopic);
-    shelfLight.OnChangeState([](bool enabled, uint8_t brightness, CRGB color) {
-        stateMgr.setShelfState(enabled, brightness, color);
-    });
-    shelfSwitchConsumer.init(configMgr.getConfig().mqttShelfSwitchCommandTopic);
-    mqtt.subscribe(&shelfSwitchConsumer);
-
-    backlightSwitchConsumer.init(configMgr.getConfig().mqttBacklightSwitchCommandTopic);
-    mqtt.subscribe(&backlightSwitchConsumer);
-
-    mainLightSwitchConsumer.init(configMgr.getConfig().mqttMainLightSwitchCommandTopic);
-    mqtt.subscribe(&mainLightSwitchConsumer);
+    lightSwitchConsumer.init(configMgr.getConfig().mqttLightSwitchCommandTopic);
+    mqtt.subscribe(&lightSwitchConsumer);
 
     binarySensor.init(device, configMgr.getConfig().mqttStateTopic, configMgr.getConfig().addressWBMCM8);
     binarySensor.onSwitchShortPressActivate([&]() {
@@ -165,10 +153,10 @@ void setup()
     });
     complexSensor.init(device, configMgr.getConfig().mqttStateTopic, configMgr.getConfig().addressWBMSW);
 
-    backlight.init(device, configMgr.getConfig().mqttStateTopic, configMgr.getConfig().mqttCommandTopic, configMgr.getConfig().mqttBacklightSwitchCommandTopic, configMgr.getConfig().addressWBLED2);
-    mainLight.init(device, configMgr.getConfig().mqttStateTopic, configMgr.getConfig().mqttCommandTopic, configMgr.getConfig().mqttMainLightSwitchCommandTopic, configMgr.getConfig().addressWBLED1);
+    mainLight.init(configMgr.getConfig().addressWBLED1);
+    backlight.init(configMgr.getConfig().addressWBLED2);
 
-    lightAutomation.init(device, configMgr.getConfig().mqttStateTopic, configMgr.getConfig().mqttCommandTopic);
+    lightAutomation.init(device, configMgr.getConfig().mqttStateTopic, configMgr.getConfig().mqttCommandTopic, configMgr.getConfig().mqttLightSwitchCommandTopic);
 
     ESP_LOGI("setup", "complete");
 }
@@ -180,7 +168,6 @@ void loop()
     meter.loop();
     ArduinoOTA.handle();
     fxEngine.loop();
-    shelfLight.loop();
     healthCheck.loop();
     binarySensor.loop();
     complexSensor.loop();

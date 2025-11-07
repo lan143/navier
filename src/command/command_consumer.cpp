@@ -21,20 +21,20 @@ void CommandConsumer::consume(std::string payload)
         _drawingRelay->activate(command.isDrawingRelay());
     }
 
-    if (command.hasShelfColor()) {
-        _shelfLight->setColor(command.getShelfColor());
+    if (command.hasLightNightMode()) {
+        _lightAutomation->changeNightModeState(command.isLightNightMode());
     }
 
-    if (command.hasShelfBrightness()) {
-        _shelfLight->setBrightness(command.getShelfBightness());
+    if (command.hasLightBrightness()) {
+        _lightAutomation->setBrightness(command.getLightBightness());
     }
 
-    if (command.hasMainLightBrightness()) {
-        _mainLight->setBrightness(command.getMainLightBrightness());
+    if (command.hasLightColor()) {
+        _lightAutomation->setColor(command.getLightColor());
     }
 
-    if (command.hasMainLightTempColor()) {
-        uint16_t temperature = command.getMainLightTempColor();
+    if (command.hasLightTempColor()) {
+        uint16_t temperature = command.getLightTempColor();
         if (temperature < 2700) {
             temperature = 2700;
         }
@@ -43,18 +43,6 @@ void CommandConsumer::consume(std::string payload)
             temperature = 6000;
         }
 
-        _mainLight->setColorTemperature(temperature);
-    }
-
-    if (command.hasLightNightMode()) {
-        _lightAutomation->changeNightModeState(command.isLightNightMode());
-    }
-
-    if (command.hasBacklightBrightness()) {
-        _backlight->setBrightness(command.getBacklightBightness());
-    }
-
-    if (command.hasBacklightColor()) {
-        _backlight->setColor(command.getBacklightColor());
+        _lightAutomation->setColorTemperature(temperature);
     }
 }
