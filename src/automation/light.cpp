@@ -159,5 +159,5 @@ void LightAutomation::update()
     _stateMgr->setLightSwitchState(_state.enabled);
     _stateMgr->setLightBrightness(_state.brightness);
     _stateMgr->setLightColor(_state.color);
-    _stateMgr->setTemperature(_state.temperature);
+    _stateMgr->setLightTempColor(_state.temperature);
 }

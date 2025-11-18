@@ -50,7 +50,7 @@ public:
     void setLightSwitchState(bool enabled) { _lightSwitchState = enabled; }
     void setLightBrightness(uint8_t brightness) { _lightBrightness = brightness; }
     void setLightColor(CRGB color) { _lightColor = color; }
-    void setLightTempColor(uint16_t temp) { _lightTempColor = temp; }
+    void setLightTempColor(uint16_t temperature) { _lightTempColor = temperature; }
 
     bool isValid() const
     {

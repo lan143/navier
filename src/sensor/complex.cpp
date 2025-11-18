@@ -78,7 +78,7 @@ void ComplexSensor::loop()
     }
 
     if ((_lastMotionUpdateTime + 200) < millis()) {
-        _stateMgr->setMotionDetected(_mswSensor->getMotion() > 100);
+        _stateMgr->setMotionDetected(_mswSensor->getMotion() > 120);
         _lastMotionUpdateTime = millis();
     }
 }
