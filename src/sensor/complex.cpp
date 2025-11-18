@@ -55,7 +55,7 @@ void ComplexSensor::loop()
 {
     if ((_lastClimateUpdateTime + 10000) < millis()) {
         float_t temperature = _mswSensor->getTemperature();
-        if (temperature != -1000.f) {
+        if (temperature > -40.0f && temperature < 80.0f) {
             _stateMgr->setTemperature(_mswSensor->getTemperature());
         }
 
