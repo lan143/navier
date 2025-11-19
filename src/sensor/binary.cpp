@@ -68,6 +68,7 @@ void BinarySensor::init(EDHA::Device* device, std::string stateTopic, uint8_t ad
         ->setPayloadOff("false")
         ->setDeviceClass(EDHA::deviceClassBinarySensorWindow);
 
+    _mcm8Device->setDebouncingTime(WB_MCM8_CHANNEL_LIGHT_SWITCH, 100);
     _switchShortPressCount = _mcm8Device->getShortPressCount(WB_MCM8_CHANNEL_LIGHT_SWITCH);
 }
 

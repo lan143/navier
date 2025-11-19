@@ -30,9 +30,19 @@ std::string State::marshalJSON()
         entity[F("waterCloseRelay")] = _waterCloseRelay ? "true" : "false";
         entity[F("drawingRelay")] = _drawingRelay ? "true" : "false";
         entity[F("waterConsumption")] = _waterConsumption;
-        entity[F("temperature")] = _temperature;
-        entity[F("humidity")] = _humidity;
-        entity[F("airQuality")] = _airQuality;
+
+        if (_temperature != -1000.0f) {
+            entity[F("temperature")] = _temperature;
+        }
+
+        if (_humidity != -1000.0f) {
+            entity[F("humidity")] = _humidity;
+        }
+
+        if (_airQuality != -1) {
+            entity[F("airQuality")] = _airQuality;
+        }
+
         entity[F("motionDetected")] = _motionDetected ? "true" : "false";
         entity[F("waterLeakToilet")] = _waterLeakToilet ? "true" : "false";
         entity[F("waterLeakBathroom")] = _waterLeakBathroom ? "true" : "false";
