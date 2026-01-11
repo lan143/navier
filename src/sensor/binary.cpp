@@ -82,14 +82,13 @@ void BinarySensor::loop()
         _stateMgr->setToiletManholeOpen(!_mcm8Device->getInputState(WB_MCM8_CHANNEL_TOILET_MANHOLE));
 
         uint16_t shortPressCount = _mcm8Device->getShortPressCount(WB_MCM8_CHANNEL_LIGHT_SWITCH);
-        if (shortPressCount >= 0 && _switchShortPressCount != shortPressCount) {
+        if (shortPressCount >= 0 && ((_switchShortPressCount + 1) == shortPressCount)) {
             for (auto& fn : _switchShortPressActivateCallbacks) {
                 fn();
             }
-
-            _switchShortPressCount = shortPressCount;
         }
 
+        _switchShortPressCount = shortPressCount;
         _lastInputUpdateTime = millis();
     }
 }

@@ -48,6 +48,8 @@ void LightAutomation::init(EDHA::Device* device, std::string stateTopic, std::st
         _manual = true;
     }
 
+    _prevToiletDoorIsOpen = _stateMgr->getCurrentState().isToiletDoorOpen();
+
     update();
 }
 
@@ -100,12 +102,14 @@ void LightAutomation::changeStateInternal(bool enabled, bool manual)
 void LightAutomation::loop()
 {
     if (!_manual && (_lastCheckTime + 500) < millis()) {
-        if (_stateMgr->getCurrentState().isToiletDoorOpen() || _stateMgr->getCurrentState().isMotionDetected()) {
+        if ((_stateMgr->getCurrentState().isToiletDoorOpen() && _stateMgr->getCurrentState().isToiletDoorOpen() != _prevToiletDoorIsOpen) || _stateMgr->getCurrentState().isMotionDetected()) {
             changeStateInternal(true, false);
             _lastTriggerTime = millis();
         } else if (_state.enabled && (_lastTriggerTime + 60000) < millis()) {
             changeStateInternal(false, false);
         }
+
+        _prevToiletDoorIsOpen = _stateMgr->getCurrentState().isToiletDoorOpen();
 
         _lastCheckTime = millis();
     }

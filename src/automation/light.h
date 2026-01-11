@@ -45,6 +45,7 @@ private:
 
     LightState _state;
     bool _manual = false;
+    bool _prevToiletDoorIsOpen = false;
 
 private:
     EDConfig::ConfigMgr<Config>* _configMgr = NULL;
