@@ -15,6 +15,7 @@
 #include "defines.h"
 #include "config.h"
 #include "counter/water_counter.h"
+#include "sensors/msw_sensors.h"
 #include "water/drawing_automation.h"
 #include "water/water_automation.h"
 #include "web/handler.h"
@@ -33,8 +34,7 @@ WaterCounterPersistence waterCounterPersistence("/water_counter.bin");
 WaterCounter waterCounter;
 
 EDWB::MCM8* mcm8 = nullptr;
-EDCommon::Sensor::Sensor* airQualitySensor = nullptr;
-EDCommon::Sensor::Sensor* humiditySensor = nullptr;
+MswSensors* mswSensors = nullptr;
 WaterAutomation* waterAutomation = nullptr;
 DrawingAutomation* drawingAutomation = nullptr;
 
@@ -132,9 +132,19 @@ void setup()
         EDCommon::Counter::withDiscovery(&discoveryMgr, device)
     });
 
+    auto msw = modbus.addMSW(configMgr.getData()->addressWBMSW);
+    mswSensors = new MswSensors(msw);
+    if (!mswSensors->init(&mqtt, topicPrefix, &discoveryMgr, device)) {
+        ESP_LOGE("setup", "failed to init WB-MSW sensors");
+    }
+
     mcm8 = modbus.addMCM8(configMgr.getData()->addressWBMCM8);
     waterAutomation = new WaterAutomation(&waterRelay, mcm8);
-    drawingAutomation = new DrawingAutomation(&drawingRelay, airQualitySensor, humiditySensor);
+    drawingAutomation = new DrawingAutomation(
+        &drawingRelay,
+        mswSensors->airQuality(),
+        mswSensors->humidity()
+    );
 
     ESP_LOGI("setup", "complete");
 }
@@ -148,6 +158,10 @@ void loop()
     waterRelay.update();
     drawingRelay.update();
     waterCounter.update();
+
+    if (mswSensors != nullptr) {
+        mswSensors->update();
+    }
 
     if (waterAutomation != nullptr) {
         waterAutomation->loop();
