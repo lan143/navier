@@ -256,7 +256,7 @@ void Handler::init()
             entity["mqttIsHADiscovery"] = config->mqttIsHADiscovery;
             entity["mqttHADiscoveryPrefix"] = config->mqttHADiscoveryPrefix;
             entity["mqttTopicsPrefix"] = config->mqttTopicsPrefix;
-            entity["initialValue"] = 0.0f;
+            entity["initialValue"] = _counter != nullptr ? _counter->getCurrentValue() : 0.0f;
         });
 
         response->write(payload.c_str());
@@ -276,6 +276,13 @@ void Handler::init()
             request->send(422, "application/json", "{\"message\": \"Incorrect initialValue\"}");
             return;
         }
+
+        if (_counter == nullptr) {
+            request->send(500, "application/json", "{\"message\": \"counter is not ready\"}");
+            return;
+        }
+
+        _counter->setInitialValue(initialValue);
 
         request->send(200, "application/json", "{}");
     });

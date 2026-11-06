@@ -9,9 +9,14 @@
 #include <healthcheck.h>
 #include <wirenboard.h>
 #include <network/network.h>
+#include <relay/gpio.h>
+#include <device/wb_mcm8.h>
 
 #include "defines.h"
 #include "config.h"
+#include "counter/water_counter.h"
+#include "water/drawing_automation.h"
+#include "water/water_automation.h"
 #include "web/handler.h"
 
 EDConfig::DataMgr<Config> configMgr(new EDConfig::StorageLittleFS<Config>("/config.bin"));
@@ -22,7 +27,18 @@ EDHealthCheck::HealthCheck healthCheck;
 EDHA::DiscoveryMgr discoveryMgr;
 EDHA::Device* device = nullptr;
 
-Handler handler(&configMgr, &networkMgr, &healthCheck, &modbus);
+EDCommon::Relay::GPIO waterRelay;
+EDCommon::Relay::GPIO drawingRelay;
+WaterCounterPersistence waterCounterPersistence("/water_counter.bin");
+WaterCounter waterCounter;
+
+EDWB::MCM8* mcm8 = nullptr;
+EDCommon::Sensor::Sensor* airQualitySensor = nullptr;
+EDCommon::Sensor::Sensor* humiditySensor = nullptr;
+WaterAutomation* waterAutomation = nullptr;
+DrawingAutomation* drawingAutomation = nullptr;
+
+Handler handler(&configMgr, &networkMgr, &healthCheck, &modbus, &waterCounter);
 
 void setup()
 {
@@ -96,6 +112,30 @@ void setup()
         ->setName(deviceName)
         ->setManufacturer(deviceManufacturer);
 
+    const char* topicPrefix = configMgr.getData()->mqttTopicsPrefix;
+
+    waterRelay.init(RELAY_WATER_VALVE, true, {
+        EDCommon::Relay::withMQTT(&mqtt, topicPrefix, "navier", "Water close"),
+        EDCommon::Relay::withDiscovery(&discoveryMgr, device)
+    });
+
+    drawingRelay.init(RELAY_DRAWING, true, {
+        EDCommon::Relay::withMQTT(&mqtt, topicPrefix, "navier", "Drawing"),
+        EDCommon::Relay::withDiscovery(&discoveryMgr, device)
+    });
+
+    waterCounter.init({
+        EDCommon::Counter::withCost(10),
+        EDCommon::Counter::withObjectID("water_consumption"),
+        EDCommon::Counter::withPersistence(&waterCounterPersistence),
+        EDCommon::Counter::withMQTT(&mqtt, topicPrefix, "navier", "Water consumption"),
+        EDCommon::Counter::withDiscovery(&discoveryMgr, device)
+    });
+
+    mcm8 = modbus.addMCM8(configMgr.getData()->addressWBMCM8);
+    waterAutomation = new WaterAutomation(&waterRelay, mcm8);
+    drawingAutomation = new DrawingAutomation(&drawingRelay, airQualitySensor, humiditySensor);
+
     ESP_LOGI("setup", "complete");
 }
 
@@ -104,6 +144,19 @@ void loop()
     networkMgr.loop();
     discoveryMgr.loop();
     modbus.loop();
+
+    waterRelay.update();
+    drawingRelay.update();
+    waterCounter.update();
+
+    if (waterAutomation != nullptr) {
+        waterAutomation->loop();
+    }
+
+    if (drawingAutomation != nullptr) {
+        drawingAutomation->loop();
+    }
+
     ArduinoOTA.handle();
     healthCheck.loop();
 }

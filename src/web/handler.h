@@ -7,6 +7,7 @@
 #endif
 
 #include <ESPAsyncWebServer.h>
+#include <counter/counter.h>
 #include <data_mgr.h>
 #include <healthcheck.h>
 #include <network/network.h>
@@ -20,8 +21,10 @@ public:
         EDConfig::DataMgr<Config>* configMgr,
         EDNetwork::NetworkMgr* networkMgr,
         EDHealthCheck::HealthCheck* healthCheck,
-        EDWB::WirenBoard* modbus
-    ) : _configMgr(configMgr), _networkMgr(networkMgr), _healthCheck(healthCheck), _modbus(modbus) {
+        EDWB::WirenBoard* modbus,
+        EDCommon::Counter::Counter* counter
+    ) : _configMgr(configMgr), _networkMgr(networkMgr), _healthCheck(healthCheck),
+        _modbus(modbus), _counter(counter) {
         _server = new AsyncWebServer(80);
     }
 
@@ -33,4 +36,5 @@ private:
     EDNetwork::NetworkMgr* _networkMgr;
     EDHealthCheck::HealthCheck* _healthCheck;
     EDWB::WirenBoard* _modbus;
+    EDCommon::Counter::Counter* _counter;
 };
