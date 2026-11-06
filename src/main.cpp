@@ -30,6 +30,10 @@ EDHealthCheck::HealthCheck healthCheck;
 EDHA::DiscoveryMgr discoveryMgr;
 EDHA::Device* device = nullptr;
 
+volatile bool configDirty = false;
+volatile bool counterInitialPending = false;
+volatile float counterInitialValue = 0.0f;
+
 EDCommon::Relay::GPIO waterRelay;
 EDCommon::Relay::GPIO drawingRelay;
 WaterCounterPersistence waterCounterPersistence("/water_counter.bin");
@@ -98,6 +102,14 @@ void setup()
         }
     });
     healthCheck.registerService(&mqtt);
+
+    handler.setOnStoreConfig([]() {
+        configDirty = true;
+    });
+    handler.setOnCounterSetInitial([](float value) {
+        counterInitialValue = value;
+        counterInitialPending = true;
+    });
 
     handler.init();
 
@@ -179,6 +191,20 @@ void setup()
 
 void loop()
 {
+    if (configDirty) {
+        configDirty = false;
+
+        if (!configMgr.store()) {
+            configDirty = true;
+            ESP_LOGE("loop", "failed to store config");
+        }
+    }
+
+    if (counterInitialPending) {
+        counterInitialPending = false;
+        waterCounter.setInitialValue(counterInitialValue);
+    }
+
     networkMgr.loop();
     discoveryMgr.loop();
     modbus.loop();

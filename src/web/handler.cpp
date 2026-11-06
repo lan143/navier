@@ -119,7 +119,9 @@ void Handler::init()
         config->addressWBLED1 = addressWBLED1;
         config->addressWBLED2 = addressWBLED2;
 
-        _configMgr->store();
+        if (_onStoreConfig) {
+            _onStoreConfig();
+        }
 
         request->send(200, "application/json", "{}");
     });
@@ -148,7 +150,9 @@ void Handler::init()
         std::strcpy(config->network.wifiPassword, wifiPassword->value().c_str());
         config->network.isAPMode = false;
 
-        _configMgr->store();
+        if (_onStoreConfig) {
+            _onStoreConfig();
+        }
 
         _networkMgr->config() = config->network;
         _networkMgr->requestApplyConfig();
@@ -244,7 +248,9 @@ void Handler::init()
         config->mqttIsHADiscovery =
             isHADiscoveryEnabled != nullptr && strcmp(isHADiscoveryEnabled->value().c_str(), "true") == 0;
 
-        _configMgr->store();
+        if (_onStoreConfig) {
+            _onStoreConfig();
+        }
 
         request->send(200, "application/json", "{}");
     });
@@ -290,7 +296,9 @@ void Handler::init()
             return;
         }
 
-        _counter->setInitialValue(initialValue);
+        if (_onCounterSetInitial) {
+            _onCounterSetInitial(initialValue);
+        }
 
         request->send(200, "application/json", "{}");
     });

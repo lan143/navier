@@ -1,5 +1,7 @@
 #pragma once
 
+#include <functional>
+
 #ifdef ESP32
     #include <AsyncTCP.h>
 #elif defined(ESP8266)
@@ -30,6 +32,14 @@ public:
 
     void init();
 
+    void setOnStoreConfig(std::function<void()> onStoreConfig) {
+        _onStoreConfig = onStoreConfig;
+    }
+
+    void setOnCounterSetInitial(std::function<void(float)> onCounterSetInitial) {
+        _onCounterSetInitial = onCounterSetInitial;
+    }
+
 private:
     AsyncWebServer* _server;
     EDConfig::DataMgr<Config>* _configMgr;
@@ -37,4 +47,6 @@ private:
     EDHealthCheck::HealthCheck* _healthCheck;
     EDWB::WirenBoard* _modbus;
     EDCommon::Counter::Counter* _counter;
+    std::function<void()> _onStoreConfig;
+    std::function<void(float)> _onCounterSetInitial;
 };
