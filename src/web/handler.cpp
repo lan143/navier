@@ -12,6 +12,14 @@
 
 void Handler::init()
 {
+    // Exact 404 handlers must precede serveStatic so internal storage files cannot be downloaded.
+    const char* blockedStoragePaths[] = {"/config.bin", "/water_counter.bin", "/light_state.bin", "/data.tmp"};
+    for (const char* path : blockedStoragePaths) {
+        _server->on(path, HTTP_GET, [](AsyncWebServerRequest *request) {
+            request->send(404, "application/json", "{\"message\": \"not found\"}");
+        });
+    }
+
     _server->serveStatic("/", LittleFS, "/").setDefaultFile("index.html");
 
     _healthCheck->registerHandlers(_server);
