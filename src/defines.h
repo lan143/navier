@@ -13,7 +13,6 @@
 #define RELAY_DRAWING 15
 
 #define METER_PIN 36
-#define LED_PIN 33
 
 #define RS485RX  35
 #define RS485TX  32

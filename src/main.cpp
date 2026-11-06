@@ -1,69 +1,28 @@
 #include <Arduino.h>
 #include <ArduinoOTA.h>
-#include <SPIFFS.h>
-#include <ConfigMgr.h>
+#include <LittleFS.h>
+#include <data_mgr.h>
+#include <storage/littlefs_storage.hpp>
 #include <esp_log.h>
 #include <discovery.h>
 #include <mqtt.h>
 #include <healthcheck.h>
-
 #include <wirenboard.h>
-#include <device/wb_msw.h>
-#include <device/wb_led.h>
+#include <network/network.h>
 
 #include "defines.h"
 #include "config.h"
-#include "automation/drawing.h"
-#include "automation/light.h"
-#include "automation/water.h"
-#include "command/command_consumer.h"
-#include "command/switch_command_consumer.h"
-#include "led/led.h"
-#include "led/fx_engine.h"
-#include "light/address_led_light.h"
-#include "light/backlight.h"
-#include "light/main.h"
-#include "meter/meter.h"
-#include "meter/storage.h"
-#include "network/network.h"
-#include "state/producer.h"
-#include "state/state_mgr.h"
-#include "relay/relay.h"
-#include "sensor/binary.h"
-#include "sensor/complex.h"
 #include "web/handler.h"
 
-EDConfig::ConfigMgr<Config> configMgr(EEPROM_SIZE);
-NetworkMgr networkMgr(configMgr.getConfig(), true);
-EDMQTT::MQTT mqtt(configMgr.getConfig().mqtt);
+EDConfig::DataMgr<Config> configMgr(new EDConfig::StorageLittleFS<Config>("/config.bin"));
+EDNetwork::NetworkMgr networkMgr;
+EDMQTT::MQTT mqtt;
 EDWB::WirenBoard modbus(Serial2);
-
 EDHealthCheck::HealthCheck healthCheck;
 EDHA::DiscoveryMgr discoveryMgr;
-Relay waterRelay(&discoveryMgr);
-Relay drawingRelay(&discoveryMgr);
-StateProducer stateProducer(&mqtt);
-StateMgr stateMgr(&stateProducer);
-RingStorage ringStorage;
-Meter meter(&discoveryMgr, &ringStorage, &stateMgr);
+EDHA::Device* device = nullptr;
 
-Led led;
-FXEngine fxEngine(&led);
-AddressLEDLight shelfLight(&led, &fxEngine);
-MainLight mainLight(&modbus);
-Backlight backlight(&modbus);
-
-BinarySensor binarySensor(&discoveryMgr, &stateMgr, &modbus);
-ComplexSensor complexSensor(&discoveryMgr, &stateMgr, &modbus);
-
-DrawingAutomation drawingAutomation(&drawingRelay, &stateMgr);
-WaterAutomation waterAutomation(&waterRelay, &stateMgr);
-LightAutomation lightAutomation(&configMgr, &discoveryMgr, &shelfLight, &backlight, &mainLight, &stateMgr);
-
-SwitchCommandConsumer lightSwitchConsumer(&lightAutomation);
-CommandConsumer commandConsumer(&waterRelay, &drawingRelay, &lightAutomation);
-
-Handler handler(&configMgr, &meter, &networkMgr, &stateMgr, &healthCheck, &modbus);
+Handler handler(&configMgr, &networkMgr, &healthCheck, &modbus);
 
 void setup()
 {
@@ -74,33 +33,43 @@ void setup()
     ESP_LOGI("setup", "Navier");
     ESP_LOGI("setup", "start");
 
-    SPIFFS.begin(true);
+    if (!LittleFS.begin(true)) {
+        ESP_LOGE("setup", "failed to init littlefs");
+        return;
+    }
 
-    configMgr.setDefault([](Config& config) {
-        snprintf(config.wifiAPSSID, WIFI_SSID_LEN, "Navier_%s", EDUtils::getMacAddress().c_str());
-        snprintf(config.mqttStateTopic, MQTT_TOPIC_LEN, "navier/%s/state", EDUtils::getChipID());
-        snprintf(config.mqttCommandTopic, MQTT_TOPIC_LEN, "navier/%s/set", EDUtils::getChipID());
-        snprintf(config.mqttLightSwitchCommandTopic, MQTT_TOPIC_LEN, "navier/%s/light/switch", EDUtils::getChipID());
-        snprintf(config.mqttHADiscoveryPrefix, MQTT_TOPIC_LEN, "homeassistant");
-        config.modbusSpeed = 9600;
-        config.addressWBMSW = 1;
-        config.addressWBMCM8 = 2;
-        config.addressWBLED1 = 3;
-        config.addressWBLED2 = 4;
+    configMgr.setDefault([](Config* config) {
+        snprintf(config->network.wifiAPSSID, WIFI_SSID_LEN, "Navier_%s", EDUtils::getMacAddress().c_str());
+        snprintf(config->mqttHADiscoveryPrefix, MQTT_TOPIC_LEN, "homeassistant");
+        snprintf(config->mqttTopicsPrefix, MQTT_TOPIC_LEN, "navier/%s", EDUtils::getChipID());
+        strcpy(config->otaPassword, "somestrongpassword");
+
+        config->modbusSpeed = 9600;
+        config->addressWBMSW = 1;
+        config->addressWBMCM8 = 2;
+        config->addressWBLED1 = 3;
+        config->addressWBLED2 = 4;
     });
     configMgr.load();
 
-    Serial2.begin(configMgr.getConfig().modbusSpeed, SERIAL_8N1, RS485RX, RS485TX);
+    Serial2.begin(configMgr.getData()->modbusSpeed, SERIAL_8N1, RS485RX, RS485TX);
     modbus.init(15);
 
-    networkMgr.init();
+    networkMgr.init(
+        configMgr.getData()->network,
+        true,
+        ETH_ADDR,
+        ETH_POWER_PIN,
+        ETH_MDC_PIN,
+        ETH_MDIO_PIN,
+        ETH_TYPE,
+        ETH_CLK_MODE
+    );
 
-    ArduinoOTA.setPassword("somestrongpassword");
+    ArduinoOTA.setPassword(configMgr.getData()->otaPassword);
     ArduinoOTA.begin();
 
-    commandConsumer.init(configMgr.getConfig().mqttCommandTopic);
-
-    mqtt.init();
+    mqtt.init(configMgr.getData()->mqtt);
     networkMgr.OnConnect([&](bool isConnected) {
         if (isConnected) {
             mqtt.connect();
@@ -109,54 +78,23 @@ void setup()
         }
     });
     healthCheck.registerService(&mqtt);
-    mqtt.subscribe(&commandConsumer);
-
-    stateProducer.init(configMgr.getConfig().mqttStateTopic);
 
     handler.init();
 
     discoveryMgr.init(
-        configMgr.getConfig().mqttHADiscoveryPrefix,
-        configMgr.getConfig().mqttIsHADiscovery,
+        configMgr.getData()->mqttHADiscoveryPrefix,
+        configMgr.getData()->mqttIsHADiscovery,
         [](std::string topicName, std::string payload) {
             return mqtt.publish(topicName.c_str(), payload.c_str(), true);
         }
     );
 
-    EDHA::Device* device = discoveryMgr.addDevice();
+    device = discoveryMgr.addDevice();
     device->setHWVersion(deviceHWVersion)
         ->setSWVersion(deviceFWVersion)
         ->setModel(deviceModel)
         ->setName(deviceName)
         ->setManufacturer(deviceManufacturer);
-
-    ringStorage.init();
-    meter.init(device, configMgr.getConfig().mqttStateTopic);
-
-    waterRelay.init(device, "Water close", "waterClose", RELAY_WATER_VALVE, false, configMgr.getConfig().mqttStateTopic, configMgr.getConfig().mqttCommandTopic);
-    waterRelay.onActivate([](bool isOn) {
-        stateMgr.setWaterRelayClosed(isOn);
-    });
-
-    drawingRelay.init(device, "Drawing", "drawing", RELAY_DRAWING, false, configMgr.getConfig().mqttStateTopic, configMgr.getConfig().mqttCommandTopic);
-    drawingRelay.onActivate([](bool isOn) {
-        stateMgr.setDrawingRelayOn(isOn);
-    });
-
-    led.init(LED_PIN);
-    lightSwitchConsumer.init(configMgr.getConfig().mqttLightSwitchCommandTopic);
-    mqtt.subscribe(&lightSwitchConsumer);
-
-    binarySensor.init(device, configMgr.getConfig().mqttStateTopic, configMgr.getConfig().addressWBMCM8);
-    binarySensor.onSwitchShortPressActivate([&]() {
-        lightAutomation.changeState(!lightAutomation.isEnabled());
-    });
-    complexSensor.init(device, configMgr.getConfig().mqttStateTopic, configMgr.getConfig().addressWBMSW);
-
-    mainLight.init(configMgr.getConfig().addressWBLED1);
-    backlight.init(configMgr.getConfig().addressWBLED2);
-
-    lightAutomation.init(device, configMgr.getConfig().mqttStateTopic, configMgr.getConfig().mqttCommandTopic, configMgr.getConfig().mqttLightSwitchCommandTopic);
 
     ESP_LOGI("setup", "complete");
 }
@@ -165,14 +103,7 @@ void loop()
 {
     networkMgr.loop();
     discoveryMgr.loop();
-    meter.loop();
+    modbus.loop();
     ArduinoOTA.handle();
-    fxEngine.loop();
     healthCheck.loop();
-    binarySensor.loop();
-    complexSensor.loop();
-    stateMgr.loop();
-    drawingAutomation.loop();
-    waterAutomation.loop();
-    lightAutomation.loop();
 }
