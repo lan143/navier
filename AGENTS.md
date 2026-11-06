@@ -66,7 +66,7 @@ no CI: a clean compilation is the minimum validation.
 | `src/main.cpp` | Composition root: global objects, `setup()` wiring order, `loop()` call order, shared HA device and entity registration. |
 | `src/config.h` | Root `Config` struct (`CURRENT_VERSION 2`): `EDNetwork::Config`, `EDMQTT::Config`, MQTT prefixes/discovery flag, OTA password and Modbus addresses. |
 | `src/defines.h` | Pin map, MCM8 channel map, controller/device metadata (`KC868-A2`, HW `1.1.0`, FW `0.3.0`) and `CONTROLLER_NAME` default `"Navier"`. |
-| `src/counter/water_counter.h`, `src/counter/water_counter.cpp` | `WaterCounter` (ed-common counter on `METER_PIN`) plus `WaterCounterPersistence` for `/water_counter.bin` (raw `uint32_t` value + `uint8_t` lock). |
+| `src/counter/water_counter.h`, `src/counter/water_counter.cpp` | `WaterCounter` (ed-common counter on `METER_PIN`) plus `WaterCounterPersistence` for `/water_counter.bin` (packed magic/value/lock record with CRC16, written via `.tmp` + rename). |
 | `src/sensors/msw_sensors.h`, `src/sensors/msw_sensors.cpp` | `MswSensors`: WB-MSW temperature, humidity and air quality; air quality uses `withKalmanFilter(50, 0.7f)`. |
 | `src/sensors/mcm8_inputs.h`, `src/sensors/mcm8_inputs.cpp` | `Mcm8Inputs`: three leak sensors, toilet door, toilet manhole (inverted) and the channel-7 light-switch short-press callback; all binary sensors poll every 200 ms. |
 | `src/sensors/motion.h`, `src/sensors/motion.cpp` | `MotionDetector`: WB-MSW motion as a binary sensor, polling every 200 ms with the preserved `> 300 && < 4096` threshold. |
@@ -160,8 +160,8 @@ The migration replaced the old firmware config and filesystem layout, so an
 upgraded device should be treated as factory-fresh: upload the filesystem,
 reconfigure Wi-Fi/MQTT/Modbus in the web UI, and set the initial water-counter
 value. The counter starts from zero and is corrected through the web Settings
-form (`POST /api/settings` with `initialValue`), which persists
-`/water_counter.bin` and reboots.
+form (`POST /api/settings` with `initialValue`), which queues
+`/water_counter.bin` persistence for the next main-loop pass and reboots.
 
 ## 6. MQTT contract
 
@@ -231,9 +231,11 @@ ones.
   5 are inverted in software during `update()`.
 - The motion threshold `> 300 && < 4096` is inherited from the pre-migration
   firmware; do not "simplify" it without hardware context.
-- The water counter reads `METER_PIN` GPIO36 and persists raw
-  `uint32_t value + uint8_t lock` to `/water_counter.bin`; `withCost(10)` makes
-  one pulse 10 L. Do not change the file format silently.
+- The water counter reads `METER_PIN` GPIO36 and persists a packed
+  magic/value/lock record plus CRC16 to `/water_counter.bin`; saves write
+  `/water_counter.bin.tmp` and then remove+rename, so a power loss leaves either
+  the old or the new valid record. `withCost(10)` makes one pulse 10 L. Do not
+  change the file format silently.
 - `/light_state.bin` is ed-config `DataMgr` state (including night mode). It is
   versioned by the library; renaming the file loses runtime state.
 - Modbus runs on `Serial2` (RX GPIO35, TX GPIO32). Keep polling in the loop
@@ -241,11 +243,23 @@ ones.
   `changeSpeed()` in `/api/settings/modbus`; do not add more.
 - `pio run -e kc868a2 -t uploadfs` erases `/config.bin`, `/water_counter.bin`
   and `/light_state.bin`. This is the intended factory-reset path.
-- The web server has NO authentication. `serveStatic("/", LittleFS, "/")` also
-  exposes `/config.bin` and the other root files, and `GET /api/settings` /
-  `GET /api/settings/mqtt` return stored credentials in plaintext. Trusted LAN
-  only; do not extend the exposure. Any new POST endpoint must validate required
-  params/lengths and answer `422` JSON like the existing handlers.
+- The web server has NO authentication. Exact-match 404 handlers registered
+  before `serveStatic` block the raw storage paths `/config.bin`,
+  `/water_counter.bin`, `/light_state.bin` and `/data.tmp`; other root files and
+  `GET /api/settings` / `GET /api/settings/mqtt` (stored credentials in
+  plaintext) remain exposed. Trusted LAN only; do not extend the exposure. Any
+  new POST endpoint must validate required params/lengths and answer `422` JSON
+  like the existing handlers.
+- Web settings POSTs only mutate in-memory config/counter state and mark it dirty
+  (`src/web/handler.cpp`); the actual LittleFS write runs on the next `loop()`
+  pass (`src/main.cpp`). A `200` therefore means "queued", including counter
+  initial values. This keeps `/config.bin` and `/water_counter.bin` writes
+  serialized with automation saves.
+- Reboot persistence of light automation state is limited by ed-common 0.5.0:
+  `/light_state.bin` is written, but night mode and brightness can revert after a
+  reboot; this is tracked for a library fix. The water counter does not depend on
+  that library path; `src/counter/water_counter.cpp` owns its CRC-checked
+  tmp+rename format.
 - Keep the healthcheck route `/healthcheck/healty` (upstream spelling) working;
   `/healthcheck/ready` is also registered by ed-healthcheck.
 - The `kc868a2_dev` environment only changes the controller name and name-based
@@ -272,5 +286,7 @@ ones.
 - Firmware version in `src/defines.h` (`deviceFWVersion`) is maintained by hand.
 - No configuration backup/restore endpoint in this firmware; `uploadfs` resets
   everything.
+- Reboot persistence of `/light_state.bin` is limited by ed-common 0.5.0: night
+  mode and brightness can revert after a reboot (tracked for a library fix).
 - The UI still returns Wi-Fi and MQTT credentials in plaintext, matching the
   trusted-LAN model above.

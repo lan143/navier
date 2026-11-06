@@ -161,6 +161,13 @@ The firmware exposes these endpoints on port 80:
 | `/healthcheck/healty` | GET | Liveness check (upstream spelling) |
 | `/healthcheck/ready` | GET | Readiness check |
 
+Settings POSTs update the in-memory configuration and return `200` immediately;
+persistence is queued and runs on the next main-loop pass (`src/web/handler.cpp`,
+`src/main.cpp`). The web UI reboots the controller after saving, which lets the
+queued write run first. The raw storage files are not downloadable: the web root
+returns `404` for `/config.bin`, `/water_counter.bin`, `/light_state.bin` and
+`/data.tmp` before the static handler.
+
 ## Home Assistant and MQTT
 
 The default topic prefix is `navier/<chip-id>`; set a different prefix in the
@@ -206,6 +213,11 @@ at the main light is adopted as a manual override after about 3 seconds; manual
 mode then ends 5 minutes after a manual switch-on or 10 minutes after the room
 becomes empty.
 
+Reboot persistence of this automation state is limited by ed-common 0.5.0: night
+mode and brightness can revert after a reboot. This is a library issue tracked
+for a fix. Water-counter persistence is independent of that path and is handled
+by `src/counter/water_counter.cpp` with a CRC-checked temporary file and rename.
+
 ### Upgrading from pre-0.3.0 firmware
 
 The migration removed the old aggregate state topic and the old
@@ -238,12 +250,13 @@ in the **Settings** form if you want to keep continuity.
 
 ## Security
 
-The web server has no authentication. The static root also exposes
-`/config.bin` and the other LittleFS files, and the settings endpoints return
-stored Wi-Fi and MQTT credentials in plaintext. Operate the controller only on a
-trusted local network and never publish its port to the internet. Change the
-default OTA password (`somestrongpassword`) in both the firmware configuration
-and `platformio.ini`.
+The web server has no authentication. The web root returns `404` for the raw
+storage paths `/config.bin`, `/water_counter.bin`, `/light_state.bin` and
+`/data.tmp`, but other LittleFS files are public, and the settings endpoints
+return stored Wi-Fi and MQTT credentials in plaintext. Operate the controller
+only on a trusted local network and never publish its port to the internet.
+Change the default OTA password (`somestrongpassword`) in both the firmware
+configuration and `platformio.ini`.
 
 ## Development
 
