@@ -36,4 +36,6 @@ private:
     EDCommon::Light::WBLedCCT* _main = nullptr;
     EDCommon::Light::WBLedRGBW* _backlight = nullptr;
     EDCommon::Automation::Light* _automation = nullptr;
+    bool _cachedEnabled = false;
+    bool _cacheValid = false;
 };

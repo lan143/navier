@@ -1,5 +1,6 @@
 #include "lighting.h"
 
+#include <esp_log.h>
 #include <wirenboard.h>
 
 bool Lighting::init(
@@ -66,9 +67,21 @@ void Lighting::toggleLight()
     }
 
     auto enabled = _main->isEnabled();
-    if (!enabled.second) {
-        return;
+    bool target;
+
+    if (enabled.second) {
+        _cachedEnabled = enabled.first;
+        _cacheValid = true;
+        target = !enabled.first;
+    } else if (_cacheValid) {
+        ESP_LOGW("lighting", "light state readback unavailable, toggling cached state");
+        target = !_cachedEnabled;
+    } else {
+        ESP_LOGW("lighting", "light state readback unavailable, defaulting to on");
+        target = true;
     }
 
-    _main->setState(!enabled.first);
+    _main->setState(target);
+    _cachedEnabled = target;
+    _cacheValid = true;
 }
