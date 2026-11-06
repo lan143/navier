@@ -15,6 +15,7 @@
 #include "defines.h"
 #include "config.h"
 #include "counter/water_counter.h"
+#include "sensors/mcm8_inputs.h"
 #include "sensors/msw_sensors.h"
 #include "water/drawing_automation.h"
 #include "water/water_automation.h"
@@ -34,6 +35,7 @@ WaterCounterPersistence waterCounterPersistence("/water_counter.bin");
 WaterCounter waterCounter;
 
 EDWB::MCM8* mcm8 = nullptr;
+Mcm8Inputs* mcm8Inputs = nullptr;
 MswSensors* mswSensors = nullptr;
 WaterAutomation* waterAutomation = nullptr;
 DrawingAutomation* drawingAutomation = nullptr;
@@ -139,6 +141,11 @@ void setup()
     }
 
     mcm8 = modbus.addMCM8(configMgr.getData()->addressWBMCM8);
+    mcm8Inputs = new Mcm8Inputs(mcm8);
+    if (!mcm8Inputs->init(&mqtt, topicPrefix, &discoveryMgr, device)) {
+        ESP_LOGE("setup", "failed to init WB-MCM8 inputs");
+    }
+
     waterAutomation = new WaterAutomation(&waterRelay, mcm8);
     drawingAutomation = new DrawingAutomation(
         &drawingRelay,
@@ -161,6 +168,10 @@ void loop()
 
     if (mswSensors != nullptr) {
         mswSensors->update();
+    }
+
+    if (mcm8Inputs != nullptr) {
+        mcm8Inputs->update();
     }
 
     if (waterAutomation != nullptr) {
