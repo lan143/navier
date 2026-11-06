@@ -6,7 +6,7 @@ void DrawingAutomation::loop()
         return;
     }
 
-    if ((_lastCheckTime + 1000) < millis()) {
+    if ((millis() - _lastCheckTime) >= 1000) {
         auto airQuality = _airQuality->getValue();
         auto humidity = _humidity->getValue();
 
