@@ -31,46 +31,68 @@ namespace
 
         return crc;
     }
+
+    bool readRecord(const char* fileName, uint32_t& value, bool& lock)
+    {
+        File file = LittleFS.open(fileName, FILE_READ);
+        if (!file) {
+            return false;
+        }
+
+        if (file.size() != RECORD_SIZE) {
+            ESP_LOGW("water_counter", "invalid counter file size, keeping defaults");
+            file.close();
+            return false;
+        }
+
+        WaterCounterRecord record;
+        uint16_t checksum = 0;
+        bool readOk =
+            file.read(reinterpret_cast<uint8_t*>(&record), sizeof(record)) == sizeof(record)
+            && file.read(reinterpret_cast<uint8_t*>(&checksum), sizeof(checksum)) == sizeof(checksum);
+
+        file.close();
+
+        if (!readOk) {
+            ESP_LOGW("water_counter", "failed to read counter file, keeping defaults");
+            return false;
+        }
+
+        if (record.magic != RECORD_MAGIC) {
+            ESP_LOGW("water_counter", "invalid counter magic, keeping defaults");
+            return false;
+        }
+
+        if (checksum != crc16(reinterpret_cast<const uint8_t*>(&record), sizeof(record))) {
+            ESP_LOGW("water_counter", "invalid counter checksum, keeping defaults");
+            return false;
+        }
+
+        value = record.value;
+        lock = record.lock != 0;
+
+        return true;
+    }
 }
 
 void WaterCounterPersistence::load(uint32_t& value, bool& lock)
 {
-    File file = LittleFS.open(_fileName, FILE_READ);
-    if (!file) {
+    uint32_t loadedValue = 0;
+    bool loadedLock = false;
+
+    if (readRecord(_fileName, loadedValue, loadedLock)) {
+        value = loadedValue;
+        lock = loadedLock;
         return;
     }
 
-    if (file.size() != RECORD_SIZE) {
-        ESP_LOGW("water_counter", "invalid counter file size, keeping defaults");
-        file.close();
-        return;
+    // remove+rename can leave only the validated tmp file if power is lost between them.
+    const String tmpFileName = String(_fileName) + ".tmp";
+    if (!LittleFS.exists(_fileName) && readRecord(tmpFileName.c_str(), loadedValue, loadedLock)) {
+        ESP_LOGW("water_counter", "recovered counter from tmp file");
+        value = loadedValue;
+        lock = loadedLock;
     }
-
-    WaterCounterRecord record;
-    uint16_t checksum = 0;
-    bool readOk =
-        file.read(reinterpret_cast<uint8_t*>(&record), sizeof(record)) == sizeof(record)
-        && file.read(reinterpret_cast<uint8_t*>(&checksum), sizeof(checksum)) == sizeof(checksum);
-
-    file.close();
-
-    if (!readOk) {
-        ESP_LOGW("water_counter", "failed to read counter file, keeping defaults");
-        return;
-    }
-
-    if (record.magic != RECORD_MAGIC) {
-        ESP_LOGW("water_counter", "invalid counter magic, keeping defaults");
-        return;
-    }
-
-    if (checksum != crc16(reinterpret_cast<const uint8_t*>(&record), sizeof(record))) {
-        ESP_LOGW("water_counter", "invalid counter checksum, keeping defaults");
-        return;
-    }
-
-    value = record.value;
-    lock = record.lock != 0;
 }
 
 void WaterCounterPersistence::save(uint32_t value, bool lock)
