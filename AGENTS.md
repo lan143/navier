@@ -93,7 +93,7 @@ water and drawing automations. `loop()` calls, in order: `networkMgr`,
 All reusable behavior comes from the author's `ed-*` library family
 (`github.com/lan143`) plus `GyverFilters`:
 
-- `ed-common` 0.5.0 — `Relay::GPIO`, `Counter::Counter`,
+- `ed-common` 0.5.1 — `Relay::GPIO`, `Counter::Counter`,
   `Light::WBLedCCT` / `Light::WBLedRGBW`, `Automation::Light`, `Sensor::WBMSW*`
   and `BinarySensor::BinarySensor`;
 - `ed-network` — `NetworkMgr` and `EDNetwork::Config` (Ethernet PHY parameters);
@@ -114,7 +114,7 @@ All reusable behavior comes from the author's `ed-*` library family
 Dependencies are pinned in `platformio.ini`. Keep the existing style:
 
 - tags where upstream has the wanted state: `ed-mqtt#0.1.1`,
-  `ed-utils#0.3.0`, `ed-healthcheck#0.2.1`, `ed-common#0.5.0`,
+  `ed-utils#0.3.0`, `ed-healthcheck#0.2.1`, `ed-common#0.5.1`,
   `GyverFilters#3.2`;
 - full 40-character SHAs for `ed-config` (`47def1f1…`), `ed-ha`
   (`f6ca848b…`), `ed-wb` (`dfa808b1…`) and `ed-network` (`e6450b93…`);
@@ -255,11 +255,12 @@ ones.
   pass (`src/main.cpp`). A `200` therefore means "queued", including counter
   initial values. This keeps `/config.bin` and `/water_counter.bin` writes
   serialized with automation saves.
-- Reboot persistence of light automation state is limited by ed-common 0.5.0:
-  `/light_state.bin` is written, but night mode and brightness can revert after a
-  reboot; this is tracked for a library fix. The water counter does not depend on
-  that library path; `src/counter/water_counter.cpp` owns its CRC-checked
-  tmp+rename format.
+- Reboot persistence of light automation state: since ed-common 0.5.1 the
+  automation state file `/light_state.bin` is restored into the live state on
+  `Automation::Light` init, so night mode and brightness survive a reboot (the
+  older 0.5.0 overwrote the file with defaults ~51 s after boot). The water
+  counter does not depend on that library path;
+  `src/counter/water_counter.cpp` owns its CRC-checked tmp+rename format.
 - Keep the healthcheck route `/healthcheck/healty` (upstream spelling) working;
   `/healthcheck/ready` is also registered by ed-healthcheck.
 - The `kc868a2_dev` environment only changes the controller name and name-based
@@ -273,9 +274,9 @@ ones.
   debounce/short-press handling, pulse counting, Modbus timing and the
   air-quality/motion thresholds need a real device.
 - For API changes, check the exact pinned library headers in
-  `.pio/libdeps/kc868a2/` (ed-common is 0.5.0 there) and use the sibling
+  `.pio/libdeps/kc868a2/` (ed-common is 0.5.1 there) and use the sibling
   reference repositories `../alfred`, `../evelyn` and `../ed-common` for usage
-  examples. The sibling `ed-common` checkout may be older than 0.5.0, so prefer
+  examples. The sibling `ed-common` checkout may be older than 0.5.1, so prefer
   the resolved copy under `.pio/`.
 - Any `data/` change requires `pio run -e kc868a2 -t uploadfs`; mention the
   config reset in the PR/commit note.
@@ -286,7 +287,8 @@ ones.
 - Firmware version in `src/defines.h` (`deviceFWVersion`) is maintained by hand.
 - No configuration backup/restore endpoint in this firmware; `uploadfs` resets
   everything.
-- Reboot persistence of `/light_state.bin` is limited by ed-common 0.5.0: night
-  mode and brightness can revert after a reboot (tracked for a library fix).
+- Reboot persistence of `/light_state.bin` is fixed since ed-common 0.5.1; the
+  remaining boot-time physical reconciliation of the light is still handled by
+  the mismatch-adoption logic.
 - The UI still returns Wi-Fi and MQTT credentials in plaintext, matching the
   trusted-LAN model above.

@@ -213,9 +213,10 @@ at the main light is adopted as a manual override after about 3 seconds; manual
 mode then ends 5 minutes after a manual switch-on or 10 minutes after the room
 becomes empty.
 
-Reboot persistence of this automation state is limited by ed-common 0.5.0: night
-mode and brightness can revert after a reboot. This is a library issue tracked
-for a fix. Water-counter persistence is independent of that path and is handled
+Since ed-common 0.5.1 the automation state file `/light_state.bin` is restored
+into the live state on init, so night mode and brightness survive a reboot (the
+older 0.5.0 overwrote the file with defaults about 51 s after boot).
+Water-counter persistence is independent of that path and is handled
 by `src/counter/water_counter.cpp` with a CRC-checked temporary file and rename.
 
 ### Upgrading from pre-0.3.0 firmware
