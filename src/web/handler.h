@@ -9,6 +9,8 @@
 #endif
 
 #include <ESPAsyncWebServer.h>
+#include <backup/config_backup_handler.hpp>
+#include <backup/config_file_handler.hpp>
 #include <counter/counter.h>
 #include <data_mgr.h>
 #include <healthcheck.h>
@@ -16,6 +18,7 @@
 #include <wirenboard.h>
 
 #include "config.h"
+#include "web/backup_specs.h"
 
 class Handler {
 public:
@@ -26,7 +29,9 @@ public:
         EDWB::WirenBoard* modbus,
         EDCommon::Counter::Counter* counter
     ) : _configMgr(configMgr), _networkMgr(networkMgr), _healthCheck(healthCheck),
-        _modbus(modbus), _counter(counter) {
+        _modbus(modbus), _counter(counter),
+        _configFileHandler(BackupSpecs::kConfigFileHandlerConfig),
+        _configBackupHandler(BackupSpecs::kBackupHandlerConfig) {
         _server = new AsyncWebServer(80);
     }
 
@@ -47,6 +52,8 @@ private:
     EDHealthCheck::HealthCheck* _healthCheck;
     EDWB::WirenBoard* _modbus;
     EDCommon::Counter::Counter* _counter;
+    EDConfig::ConfigFileHandler _configFileHandler;
+    EDConfig::ConfigBackupHandler _configBackupHandler;
     std::function<void()> _onStoreConfig;
     std::function<void(float)> _onCounterSetInitial;
 };

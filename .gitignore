@@ -6,3 +6,9 @@
 .idea
 frontend/node_modules/
 .DS_Store
+
+# Local OTA credentials; .env.example stays tracked.
+/.env
+
+# OTA deployment backups produced by `make deploy`.
+/build/deploy/

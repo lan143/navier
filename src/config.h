@@ -5,7 +5,7 @@
 #include <mqtt_config.h>
 #include <network/network_config.h>
 
-#define CURRENT_VERSION 2
+#define CURRENT_VERSION 3
 
 struct Config
 {
@@ -17,8 +17,6 @@ struct Config
     bool mqttIsHADiscovery = true;
     char mqttHADiscoveryPrefix[MQTT_TOPIC_LEN] = {0};
     char mqttTopicsPrefix[MQTT_TOPIC_LEN] = {0};
-
-    char otaPassword[WIFI_PWD_LEN] = {0};
 
     // modbus
     uint32_t modbusSpeed = 0;

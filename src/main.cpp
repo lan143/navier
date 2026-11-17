@@ -21,6 +21,7 @@
 #include "water/drawing_automation.h"
 #include "water/water_automation.h"
 #include "web/handler.h"
+#include "web/reboot_after_response.h"
 
 EDConfig::DataMgr<Config> configMgr(new EDConfig::StorageLittleFS<Config>("/config.bin"));
 EDNetwork::NetworkMgr networkMgr;
@@ -66,7 +67,6 @@ void setup()
         snprintf(config->network.wifiAPSSID, WIFI_SSID_LEN, "Navier_%s", EDUtils::getMacAddress().c_str());
         snprintf(config->mqttHADiscoveryPrefix, MQTT_TOPIC_LEN, "homeassistant");
         snprintf(config->mqttTopicsPrefix, MQTT_TOPIC_LEN, "navier/%s", EDUtils::getChipID());
-        strcpy(config->otaPassword, "somestrongpassword");
 
         config->modbusSpeed = 9600;
         config->addressWBMSW = 1;
@@ -90,7 +90,7 @@ void setup()
         ETH_CLK_MODE
     );
 
-    ArduinoOTA.setPassword(configMgr.getData()->otaPassword);
+    ArduinoOTA.setPassword(NAVIER_OTA_AUTH);
     ArduinoOTA.begin();
 
     mqtt.init(configMgr.getData()->mqtt);
@@ -186,6 +186,8 @@ void setup()
 
 void loop()
 {
+    RebootAfterResponse::update();
+
     if (configDirty) {
         configDirty = false;
 

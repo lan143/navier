@@ -21,6 +21,13 @@
 #define CONTROLLER_NAME "Navier"
 #endif
 
+// scripts/ota_env.py injects NAVIER_OTA_AUTH from the untracked .env for the
+// kc868a2_ota env. Keep the dev-only fallback when building without .env so
+// plain builds compile. Never use this fallback on a real network.
+#ifndef NAVIER_OTA_AUTH
+#define NAVIER_OTA_AUTH "navier-dev-ota"
+#endif
+
 #define WB_MCM8_CHANNEL_WATER_LEAK_TOILET   1
 #define WB_MCM8_CHANNEL_WATER_LEAK_BATHROOM 2
 #define WB_MCM8_CHANNEL_WATER_LEAK_KITCHEN  3

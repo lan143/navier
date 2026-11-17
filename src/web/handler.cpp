@@ -9,6 +9,7 @@
 #include <string.h>
 #include "defines.h"
 #include "handler.h"
+#include "web/reboot_after_response.h"
 
 void Handler::init()
 {
@@ -360,9 +361,15 @@ void Handler::init()
 
     _server->on("/api/reboot", HTTP_POST, [this](AsyncWebServerRequest *request) {
         request->send(200, "application/json", "{}");
-        delay(200);
-        ESP.restart();
+        RebootAfterResponse::schedule(200);
     });
+
+    // The backup endpoint must be registered before the single-file config
+    // endpoint (ed-config README requirement): a plain "/api/config" matcher
+    // also matches "/api/config/..."; handlers are matched in registration order.
+    _configBackupHandler.registerHandlers(_server);
+
+    _configFileHandler.registerHandlers(_server);
 
     _server->begin();
 }
