@@ -33,7 +33,9 @@ firmware updates can be installed over the air.
   Other entity state is not shown here; Home Assistant remains the state
   consumer.
 - **Home Assistant** — every entity is announced through MQTT discovery.
-- **OTA updates** — ArduinoOTA with a password.
+- **OTA updates** — ArduinoOTA with a password taken from the untracked
+  `.env`; `make deploy` flashes firmware and UI and restores the configuration
+  around the UI upload.
 
 ## Hardware
 
@@ -74,10 +76,11 @@ All four addresses and the bus speed are editable in the web UI.
 ## Getting started
 
 Prerequisites: PlatformIO (CLI or the VS Code extension) with the
-`espressif32` platform, and Node.js/npm for building the web UI. The UI source
-lives in `frontend/`; its generated build output is the committed `data/`
-directory that `uploadfs` installs, so a UI build is only needed after changing
-`frontend/`.
+`espressif32` platform; Node.js/npm for building the web UI; and GNU make, curl
+and Python 3 for the OTA deploy flow (`scripts/ota_env.py` runs on Python 3).
+The UI source lives in `frontend/`; its generated build output is the
+committed `data/` directory that `uploadfs` installs, so a UI build is only
+needed after changing `frontend/`.
 
 To build the web UI after a `frontend/` change:
 
@@ -106,6 +109,9 @@ missing or stale. Commit the regenerated `data/` output together with the
 configuration (`/config.bin`), the water counter (`/water_counter.bin`) and the
 light automation state (`/light_state.bin`). Run it on first flash, after
 regenerating `data/`, or when you intentionally want a factory reset.
+`make deploy` protects the configuration the same way (backup before the UI
+upload, restore after) but never restores the water counter — re-enter it in
+the Water tab afterwards.
 
 To compile without flashing:
 
@@ -133,16 +139,64 @@ the queued write runs and the new settings take effect. After the reboot,
 connect through the home network and verify that the MQTT broker and Home
 Assistant discovery work.
 
-### OTA updates
+### Deploy over OTA
+
+OTA settings live in an untracked `.env` file in the project root (never
+commit it). Copy the template and fill in the device IP and a strong OTA
+password:
 
 ```bash
-pio run -e kc868a2_ota -t upload
+cp .env.example .env    # set NAVIER_OTA_IP and NAVIER_OTA_AUTH
+make deploy
 ```
 
-The target IP is `upload_port` in `platformio.ini` (currently `192.168.1.34`).
-The espota password must match the OTA password stored in the controller
-configuration (`otaPassword`, default `somestrongpassword`). Change both places
-together if you change it.
+`make deploy` runs the full cycle with no prompts: flash the firmware over
+OTA, wait for the device to boot, download a configuration backup to
+`build/deploy/navier-config-<timestamp>.zip`, upload the web UI to LittleFS,
+restore the backup and verify the device came back. The UI upload erases
+LittleFS, but the deploy backs the configuration up first and restores it
+after, so settings survive. The water counter is not part of backups — re-set
+it in the Water tab afterwards if it must be preserved.
+
+At build time `scripts/ota_env.py` injects `NAVIER_OTA_AUTH` from `.env` into
+both the espota upload and the compiled firmware, so the two passwords always
+match. Individual steps are available: `make firmware`, `make ui`,
+`make backup`, `make restore`, `make status` (`make help` lists them all and
+the overridable variables).
+
+First deploy caveat: a device still running the old firmware authenticates OTA
+with the password currently configured on the running device. Set
+`NAVIER_OTA_AUTH` to that value for the very first deploy (or flash once over
+USB); every later deploy uses whatever `NAVIER_OTA_AUTH` is set to.
+
+The USB path does not read `.env` and is unchanged:
+
+```bash
+pio run -e kc868a2 -t upload     # USB firmware flash
+pio run -e kc868a2 -t uploadfs   # USB LittleFS flash (erases configuration)
+```
+
+A plain `pio run -e kc868a2_ota -t upload` also still works once `.env` exists;
+the Makefile targets wrap it for `kc868a2_ota` only.
+
+### Backup and restore
+
+The firmware exposes two no-auth backup endpoints on port 80 (trusted LAN,
+like the rest of the web UI):
+
+- `GET /api/config/backup` — download a `navier-config.zip` store (≤ 16 KiB)
+  containing `/config.bin` and `/light_state.bin`; `POST` the same zip back to
+  restore it. The device validates size, version and CRC, then reboots.
+- `GET /api/config` — the raw `/config.bin`; `POST` writes it back.
+
+The water counter (`/water_counter.bin`) is deliberately excluded — its file
+format would fail the restore validation. After a restore (or any filesystem
+upload) re-enter the total in the Water tab.
+
+Backups contain the stored Wi-Fi and MQTT credentials in plaintext. Treat
+`build/deploy/*.zip` as secrets; the directory is gitignored. Restoring a
+backup from a different firmware version may be rejected on the version check —
+keep backups with the matching firmware.
 
 ### Development build
 
@@ -180,15 +234,20 @@ The firmware exposes these endpoints on port 80:
 | `/api/settings/mqtt` | GET/POST | Read/save MQTT and discovery settings |
 | `/api/settings/modbus` | GET/POST | Read/save bus speed and device addresses |
 | `/api/reboot` | POST | Restart the controller |
+| `/api/config` | GET/POST | Download/replace the raw `/config.bin` (size/version/CRC checked) |
+| `/api/config/backup` | GET/POST | Download/restore a `navier-config.zip` archive (`config.bin` + `light_state.bin`) |
 | `/healthcheck/healty` | GET | Liveness check (upstream spelling) |
 | `/healthcheck/ready` | GET | Readiness check |
 
 Settings POSTs update the in-memory configuration and return `200` immediately;
 persistence is queued and runs on the next main-loop pass (`src/web/handler.cpp`,
 `src/main.cpp`). The web UI shows a separate reboot action after saving so the
-queued write runs before the restart. The raw storage files are not downloadable:
-the web root returns `404` for `/config.bin`, `/water_counter.bin`,
-`/light_state.bin` and `/data.tmp` before the static handler.
+queued write runs before the restart. The raw storage files are not downloadable
+as static files: the web root returns `404` for `/config.bin`,
+`/water_counter.bin`, `/light_state.bin` and `/data.tmp` before the static
+handler. `/api/config` and `/api/config/backup` are the sanctioned way to fetch
+the configuration — like the rest of the API they have no authentication, so
+use them only on a trusted network (see Backup and restore above).
 
 ## Home Assistant and MQTT
 
@@ -284,11 +343,13 @@ in the **Water** tab if you want to keep continuity.
 
 The web server has no authentication. The web root returns `404` for the raw
 storage paths `/config.bin`, `/water_counter.bin`, `/light_state.bin` and
-`/data.tmp`, but other LittleFS files are public, and the settings endpoints
-return stored Wi-Fi and MQTT credentials in plaintext. Operate the controller
-only on a trusted local network and never publish its port to the internet.
-Change the default OTA password (`somestrongpassword`) in both the firmware
-configuration and `platformio.ini`.
+`/data.tmp`, but other LittleFS files are public, the settings endpoints return
+stored Wi-Fi and MQTT credentials in plaintext, and the `/api/config` endpoints
+return the whole configuration the same way. Operate the controller only on a
+trusted local network and never publish its port to the internet. OTA
+credentials live in the untracked `.env` — pick a strong `NAVIER_OTA_AUTH` and
+never commit the file; configuration backups contain the same plaintext
+credentials, so keep `build/deploy/` private too (it is gitignored).
 
 ## Development
 

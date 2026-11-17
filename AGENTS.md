@@ -21,7 +21,9 @@ via PlatformIO (`platform = espressif32`, `board = esp32dev`) and provides:
   default);
 - an async web server on port 80 serving a Preact single-page UI from LittleFS
   (built from `frontend/`);
-- ArduinoOTA updates and healthcheck endpoints;
+- ArduinoOTA updates (OTA IP and password from the untracked project-root
+  `.env`) and healthcheck endpoints, plus a Makefile-driven deploy that backs
+  up and restores the configuration around UI updates;
 - LittleFS for the web root (`data/`), persisted config (`/config.bin`), the
   water counter (`/water_counter.bin`) and light automation state
   (`/light_state.bin`).
@@ -31,19 +33,40 @@ Environments in `platformio.ini`:
 - `kc868a2` — USB upload, `board_build.filesystem = littlefs`.
 - `kc868a2_dev` — extends `kc868a2`, compiles with
   `CONTROLLER_NAME="Navier dev"`.
-- `kc868a2_ota` — extends `kc868a2`, `upload_protocol = espota`,
-  `upload_port = 192.168.1.34`, `upload_flags = --auth=somestrongpassword`.
+- `kc868a2_ota` — extends `kc868a2`, `upload_protocol = espota`; target IP and
+  credentials are injected from `.env` by `scripts/ota_env.py` (keys
+  `NAVIER_OTA_IP`, `NAVIER_OTA_AUTH`).
 
 ## 2. Commands
 
 ```sh
 pio run -e kc868a2              # compile (minimum validation)
 pio run -e kc868a2_dev          # compile the "Navier dev" environment
-pio run -e kc868a2 -t upload    # flash firmware over USB
+pio run -e kc868a2 -t upload    # USB firmware flash (outside the Makefile)
 pio run -e kc868a2 -t uploadfs  # flash LittleFS image from data/
-pio run -e kc868a2_ota -t upload # OTA update; target IP is upload_port
 pio device monitor -b 115200    # serial monitor (exception decoder enabled)
 ```
+
+OTA deploys are driven by the root `Makefile` (GNU make) and need the untracked
+project-root `.env` first (template `.env.example`; never commit `.env`):
+
+```sh
+cp .env.example .env            # set NAVIER_OTA_IP / NAVIER_OTA_AUTH
+make deploy                     # full: firmware + backup + UI + restore
+make firmware                   # OTA firmware only
+make ui                         # OTA LittleFS UI only
+make backup                     # GET /api/config/backup -> build/deploy/
+make restore                    # POST build/deploy/latest.zip
+make status                     # GET /api/status
+```
+
+`scripts/ota_env.py` (a `pre` extra script on `[env:kc868a2_ota]`) reads
+`.env` and injects `UPLOAD_PORT`/`UPLOAD_FLAGS` plus `-DNAVIER_OTA_AUTH`, so the
+espota upload password and the compiled ArduinoOTA password always match. The
+Makefile targets are OTA-only; the USB commands above do not read `.env` (they
+build with the `defines.h` dev fallback). `make help` lists the targets and the
+overridables (`HOST`, `PIO`, `WAIT_INITIAL`, `WAIT_TIMEOUT`, `POLL_INTERVAL`,
+`BACKUP_DIR`, `BACKUP_ZIP`, `ZIP`).
 
 The web UI is a Preact + TypeScript + Vite single-page app in `frontend/`.
 `data/` is its generated build output: `vite.config.ts` sets `base: './'` and
@@ -60,10 +83,13 @@ pio run -e kc868a2 -t uploadfs  # install the new data/ on LittleFS
 
 `frontend/node_modules/` is gitignored.
 
-`pio run -e kc868a2 -t uploadfs` rewrites the ENTIRE LittleFS partition. That
-erases `/config.bin`, `/water_counter.bin` and `/light_state.bin`, so the device
-returns to factory defaults and the counter restarts at zero. A firmware-only
-`pio run -e kc868a2_ota -t upload` does not touch LittleFS. Upload the
+`pio run -e kc868a2 -t uploadfs` (and `make ui`, its OTA twin) rewrites the
+ENTIRE LittleFS partition. That erases `/config.bin`, `/water_counter.bin` and
+`/light_state.bin`, so the device returns to factory defaults and the counter
+restarts at zero. `make deploy` backs up and restores the configuration around
+the UI upload, but the water counter is deliberately not part of backups: after
+any filesystem flash, re-set it via the web Water tab (`POST /api/settings`
+with `initialValue`). A firmware-only flash does not touch LittleFS. Upload the
 filesystem on first flash, after any `data/` change, and when you intentionally
 want to reset the device.
 
@@ -76,7 +102,7 @@ no CI: a clean compilation is the minimum validation.
 | Path | Responsibility |
 | --- | --- |
 | `src/main.cpp` | Composition root: global objects, `setup()` wiring order, `loop()` call order, shared HA device and entity registration. |
-| `src/config.h` | Root `Config` struct (`CURRENT_VERSION 2`): `EDNetwork::Config`, `EDMQTT::Config`, MQTT prefixes/discovery flag, OTA password and Modbus addresses. |
+| `src/config.h` | Root `Config` struct (`CURRENT_VERSION 3`): `EDNetwork::Config`, `EDMQTT::Config`, MQTT prefixes/discovery flag and Modbus addresses; the OTA password field was removed (the OTA password now comes from `.env`). |
 | `src/defines.h` | Pin map, MCM8 channel map, controller/device metadata (`KC868-A2`, HW `1.1.0`, FW `0.3.0`) and `CONTROLLER_NAME` default `"Navier"`. |
 | `src/counter/water_counter.h`, `src/counter/water_counter.cpp` | `WaterCounter` (ed-common counter on `METER_PIN`) plus `WaterCounterPersistence` for `/water_counter.bin` (packed magic/value/lock record with CRC16, written via `.tmp` + rename). |
 | `src/sensors/msw_sensors.h`, `src/sensors/msw_sensors.cpp` | `MswSensors`: WB-MSW temperature, humidity and air quality; air quality uses `withKalmanFilter(50, 0.7f)`. |
@@ -85,7 +111,9 @@ no CI: a clean compilation is the minimum validation.
 | `src/light/lighting.h`, `src/light/lighting.cpp` | `Lighting`: `WBLedCCT` on WB-LED 1 (CCT channel 1), `WBLedRGBW` on WB-LED 2 and `EDCommon::Automation::Light` with night mode; the local button is bound in ed-common via `Light::withWallSwitch(Button)` on the main light. |
 | `src/water/water_automation.h`, `src/water/water_automation.cpp` | `WaterAutomation`: closes the valve after more than 10 s of continuous leak. |
 | `src/water/drawing_automation.h`, `src/water/drawing_automation.cpp` | `DrawingAutomation`: exhaust fan on air quality >= 400 or humidity >= 80 for 10 s; off when air quality < 200 and humidity <= 60 for 10 s. |
-| `src/web/handler.h`, `src/web/handler.cpp` | `AsyncWebServer` on port 80: static LittleFS hosting, healthcheck routes and the `/api/*` endpoints. |
+| `src/web/handler.h`, `src/web/handler.cpp` | `AsyncWebServer` on port 80: static LittleFS hosting, healthcheck routes, the `/api/*` endpoints and the `/api/config*` backup/restore handlers. |
+| `src/web/backup_specs.h`, `src/web/reboot_after_response.h` | ed-config `ConfigBackupHandler` / `ConfigFileHandler` specs (archive whitelist, sizes, versions, reboot hook) and `RebootAfterResponse`, the deferred reboot that lets the HTTP response flush first. |
+| `scripts/ota_env.py`, `Makefile`, `.env.example` | OTA credential injection from the untracked `.env` (`NAVIER_OTA_IP` / `NAVIER_OTA_AUTH` → upload target + compiled password) and deploy orchestration (firmware → backup → UI → restore). |
 | `data/` | Generated Vite build output (Preact SPA) served from LittleFS: `index.html` and `assets/`. Do not hand-edit; run `npm --prefix frontend run build`. |
 | `frontend/` | Preact + TypeScript + Vite SPA source for the web UI: Status, Water, Modbus, MQTT and Wi-Fi tabs; REST client reads `/api/*` and `/healthcheck/*`; builds into `data/`. |
 | `platformio.ini` | Environments, pinned `lib_deps`, build flags (`-Wshadow`, `CORE_DEBUG_LEVEL=5`, `CONFIG_LOG_COLORS=1`). |
@@ -95,7 +123,9 @@ no CI: a clean compilation is the minimum validation.
 Modbus → network → OTA → MQTT + network callback → healthcheck registration →
 web handler → discovery + shared `EDHA::Device` → water/drawing relays → water
 counter → WB-MSW sensors → WB-MCM8 inputs → lighting (wall switch bound during
-init) → water and drawing automations. `loop()` calls, in order: `networkMgr`,
+init) → water and drawing automations. `loop()` calls, in order:
+`RebootAfterResponse.update` (first, so a scheduled reboot fires only after the
+response flushed), the dirty-config/counter-initial writes, `networkMgr`,
 `discoveryMgr`, `modbus`, `waterRelay.update`, `drawingRelay.update`,
 `waterCounter.update`, `mswSensors->update`, `mcm8Inputs->update`,
 `lighting->update`, `waterAutomation->loop`, `drawingAutomation->loop`,
@@ -160,14 +190,16 @@ live in the `configMgr.setDefault(...)` lambda in `main.cpp`:
 - Wi-Fi AP SSID `Navier_<MAC>`;
 - HA discovery prefix `homeassistant`;
 - MQTT topic prefix `navier/<chipID>`;
-- OTA password `somestrongpassword`;
 - Modbus speed `9600`;
 - addresses: WB-MSW `1`, WB-MCM8 `2`, WB-LED 1 `3`, WB-LED 2 `4`.
 
 HARD RULE: any change to the `Config` struct layout requires bumping
-`CURRENT_VERSION` in `src/config.h` (currently `2`) because ed-config storage is
-versioned. The default `otaPassword` is duplicated in `main.cpp` (`setDefault`)
-and in `platformio.ini` (`espota upload_flags`) — keep the two in sync.
+`CURRENT_VERSION` in `src/config.h` (currently `3`) because ed-config storage is
+versioned. The OTA password is no longer in `Config`: for `kc868a2_ota` it is
+`NAVIER_OTA_AUTH` injected from `.env` by `scripts/ota_env.py`, otherwise the
+`defines.h` dev fallback applies (never on a real network). Removing that field
+was itself a layout change, so upgrading a v2 device yields factory defaults —
+that reset is expected.
 
 The migration replaced the old firmware config and filesystem layout, so an
 upgraded device should be treated as factory-fresh: upload the filesystem,
@@ -176,6 +208,22 @@ value. The counter starts from zero and is corrected through the web Water tab
 (`POST /api/settings` with `initialValue`), which queues `/water_counter.bin`
 persistence for the next main-loop pass; the reboot that applies it is an
 explicit UI action, not an automatic one.
+
+Config backup/restore endpoints (port 80, no auth, trusted LAN like the rest):
+
+- `GET/POST /api/config/backup` — STORE zip named `navier-config.zip`,
+  ≤ 16 KiB. `GET` downloads, `POST` restores and reboots.
+- `GET/POST /api/config` — raw `/config.bin` with ed-config version-byte and
+  CRC validation.
+
+The archive whitelist is `/config.bin` (ed-config format, version byte =
+`CURRENT_VERSION`) plus `/light_state.bin` (ed-config format, NO version byte →
+`checkVersion=false`). `/water_counter.bin` is deliberately excluded: its
+custom CCITT CRC would fail ed-config CRC16 restore validation and reject the
+whole all-or-nothing archive — restore the counter via `POST /api/settings`
+`initialValue` (Water tab) instead. Restore validates size/version/CRC for the
+whole archive, commits via tmp+rename, replies, then reboots through
+`RebootAfterResponse`.
 
 ## 6. MQTT contract
 
@@ -267,9 +315,24 @@ ones.
   before `serveStatic` block the raw storage paths `/config.bin`,
   `/water_counter.bin`, `/light_state.bin` and `/data.tmp`; other root files and
   `GET /api/settings` / `GET /api/settings/mqtt` (stored credentials in
-  plaintext) remain exposed. Trusted LAN only; do not extend the exposure. Any
-  new POST endpoint must validate required params/lengths and answer `422` JSON
-  like the existing handlers.
+  plaintext) remain exposed. The `/api/config` and `/api/config/backup` routes
+  are also served with no auth and return `/config.bin` content (plaintext
+  creds) — the raw path stays 404-blocked under `serveStatic`, so those
+  endpoints are the only way to fetch it, and they are trusted-LAN only. Do not
+  extend the exposure. Any new POST endpoint must validate required
+  params/lengths and answer `422` JSON like the existing handlers.
+- The deferred reboot via `RebootAfterResponse::update()` must stay FIRST in
+  `loop()`: backup/restore and `/api/reboot` reply first and reboot on the next
+  loop pass once the response has flushed (the old inline
+  `send(...)`+restart path dropped the response).
+- `/light_state.bin` is restored with `checkVersion=false` and assumes the
+  ed-common 0.7.0 `LightState` layout. An ed-common bump that changes that
+  struct is a format-drift risk: re-verify `sizeof`/layout against the existing
+  file before shipping the bump, or restores will corrupt night-mode state.
+- The water counter is never in a backup archive (`/water_counter.bin` is
+  excluded by design in `src/web/backup_specs.h`); recover it manually via the
+  Water tab (`POST /api/settings` `initialValue`) after any restore or
+  filesystem flash.
 - Web settings POSTs only mutate in-memory config/counter state and mark it dirty
   (`src/web/handler.cpp`); the actual LittleFS write runs on the next `loop()`
   pass (`src/main.cpp`). A `200` therefore means "queued", including counter
@@ -311,8 +374,10 @@ ones.
 
 - No unit tests, no CI and no host test harness.
 - Firmware version in `src/defines.h` (`deviceFWVersion`) is maintained by hand.
-- No configuration backup/restore endpoint in this firmware; `uploadfs` resets
-  everything.
+- Configuration backup/restore exists now (the `/api/config*` endpoints and
+  `make backup`/`make restore`), but the water counter is deliberately outside
+  backups: `uploadfs` still wipes everything and the counter must be re-entered
+  via the Water tab.
 - Reboot persistence of `/light_state.bin` is fixed since ed-common 0.5.1 (now
   pinned at 0.7.0); the remaining boot-time physical reconciliation of the light
   is still handled by the mismatch-adoption logic.
