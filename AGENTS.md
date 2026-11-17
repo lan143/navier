@@ -19,7 +19,8 @@ via PlatformIO (`platform = espressif32`, `board = esp32dev`) and provides:
   mode automation;
 - MQTT publishing with Home Assistant auto-discovery (`homeassistant` prefix by
   default);
-- an async web server on port 80 serving a small static UI from LittleFS;
+- an async web server on port 80 serving a Preact single-page UI from LittleFS
+  (built from `frontend/`);
 - ArduinoOTA updates and healthcheck endpoints;
 - LittleFS for the web root (`data/`), persisted config (`/config.bin`), the
   water counter (`/water_counter.bin`) and light automation state
@@ -44,9 +45,20 @@ pio run -e kc868a2_ota -t upload # OTA update; target IP is upload_port
 pio device monitor -b 115200    # serial monitor (exception decoder enabled)
 ```
 
-`data/` contains the hand-maintained static web UI (`index.html`, `index.js`,
-Bootstrap and jQuery assets). There is no `frontend/` directory and no npm build
-step in this repository: edit `data/` directly, then re-upload the filesystem.
+The web UI is a Preact + TypeScript + Vite single-page app in `frontend/`.
+`data/` is its generated build output: `vite.config.ts` sets `base: './'` and
+`build.outDir: '../data'` with `emptyOutDir`, so a build replaces the tracked
+`index.html` and `assets/`. Edit `frontend/src`, install the locked dependencies
+once, rebuild after every UI change and commit the regenerated `data/` output
+together with the source change:
+
+```sh
+npm --prefix frontend ci        # once; install from package-lock.json
+npm --prefix frontend run build # writes ../data
+pio run -e kc868a2 -t uploadfs  # install the new data/ on LittleFS
+```
+
+`frontend/node_modules/` is gitignored.
 
 `pio run -e kc868a2 -t uploadfs` rewrites the ENTIRE LittleFS partition. That
 erases `/config.bin`, `/water_counter.bin` and `/light_state.bin`, so the device
@@ -74,7 +86,8 @@ no CI: a clean compilation is the minimum validation.
 | `src/water/water_automation.h`, `src/water/water_automation.cpp` | `WaterAutomation`: closes the valve after more than 10 s of continuous leak. |
 | `src/water/drawing_automation.h`, `src/water/drawing_automation.cpp` | `DrawingAutomation`: exhaust fan on air quality >= 400 or humidity >= 80 for 10 s; off when air quality < 200 and humidity <= 60 for 10 s. |
 | `src/web/handler.h`, `src/web/handler.cpp` | `AsyncWebServer` on port 80: static LittleFS hosting, healthcheck routes and the `/api/*` endpoints. |
-| `data/` | Static web UI served from LittleFS: `index.html`, `index.js`, `bootstrap.min.*`, `jquery-3.6.0.min.js`. Edit by hand; no build step. |
+| `data/` | Generated Vite build output (Preact SPA) served from LittleFS: `index.html` and `assets/`. Do not hand-edit; run `npm --prefix frontend run build`. |
+| `frontend/` | Preact + TypeScript + Vite SPA source for the web UI: Status, Water, Modbus, MQTT and Wi-Fi tabs; REST client reads `/api/*` and `/healthcheck/*`; builds into `data/`. |
 | `platformio.ini` | Environments, pinned `lib_deps`, build flags (`-Wshadow`, `CORE_DEBUG_LEVEL=5`, `CONFIG_LOG_COLORS=1`). |
 | `LICENSE` | MIT license, © 2025 Kravchenko Artyom. |
 
@@ -93,7 +106,7 @@ water and drawing automations. `loop()` calls, in order: `networkMgr`,
 All reusable behavior comes from the author's `ed-*` library family
 (`github.com/lan143`) plus `GyverFilters`:
 
-- `ed-common` 0.5.1 — `Relay::GPIO`, `Counter::Counter`,
+- `ed-common` 0.7.0 — `Relay::GPIO`, `Counter::Counter`,
   `Light::WBLedCCT` / `Light::WBLedRGBW`, `Automation::Light`, `Sensor::WBMSW*`
   and `BinarySensor::BinarySensor`;
 - `ed-network` — `NetworkMgr` and `EDNetwork::Config` (Ethernet PHY parameters);
@@ -114,7 +127,7 @@ All reusable behavior comes from the author's `ed-*` library family
 Dependencies are pinned in `platformio.ini`. Keep the existing style:
 
 - tags where upstream has the wanted state: `ed-mqtt#0.1.1`,
-  `ed-utils#0.3.0`, `ed-healthcheck#0.2.1`, `ed-common#0.5.1`,
+  `ed-utils#0.3.0`, `ed-healthcheck#0.2.1`, `ed-common#0.7.0`,
   `GyverFilters#3.2`;
 - full 40-character SHAs for `ed-config` (`47def1f1…`), `ed-ha`
   (`f6ca848b…`), `ed-wb` (`dfa808b1…`) and `ed-network` (`e6450b93…`);
@@ -159,9 +172,10 @@ and in `platformio.ini` (`espota upload_flags`) — keep the two in sync.
 The migration replaced the old firmware config and filesystem layout, so an
 upgraded device should be treated as factory-fresh: upload the filesystem,
 reconfigure Wi-Fi/MQTT/Modbus in the web UI, and set the initial water-counter
-value. The counter starts from zero and is corrected through the web Settings
-form (`POST /api/settings` with `initialValue`), which queues
-`/water_counter.bin` persistence for the next main-loop pass and reboots.
+value. The counter starts from zero and is corrected through the web Water tab
+(`POST /api/settings` with `initialValue`), which queues `/water_counter.bin`
+persistence for the next main-loop pass; the reboot that applies it is an
+explicit UI action, not an automatic one.
 
 ## 6. MQTT contract
 
@@ -211,8 +225,8 @@ ones.
   go through `EDCommon::Light` backends and storage goes through LittleFS.
 - MQTT/HA entity names are part of the public contract: renaming one changes its
   topic slug and HA unique ID. Change firmware, web UI and docs together.
-- `data/` is edited by hand; keep `index.js` request/response keys in sync with
-  `src/web/handler.cpp`.
+- `data/` is generated by `npm --prefix frontend run build`; edit `frontend/src`
+  and keep `frontend/src/api/client.ts` in sync with `src/web/handler.cpp`.
 - Commit messages are short imperative English sentences (e.g. "Add leak
   protection automation").
 
@@ -255,11 +269,11 @@ ones.
   pass (`src/main.cpp`). A `200` therefore means "queued", including counter
   initial values. This keeps `/config.bin` and `/water_counter.bin` writes
   serialized with automation saves.
-- Reboot persistence of light automation state: since ed-common 0.5.1 the
-  automation state file `/light_state.bin` is restored into the live state on
-  `Automation::Light` init, so night mode and brightness survive a reboot (the
-  older 0.5.0 overwrote the file with defaults ~51 s after boot). The water
-  counter does not depend on that library path;
+- Reboot persistence of light automation state: since ed-common 0.5.1 (the
+  pinned version is now 0.7.0) the automation state file `/light_state.bin` is
+  restored into the live state on `Automation::Light` init, so night mode and
+  brightness survive a reboot (the older 0.5.0 overwrote the file with defaults
+  ~51 s after boot). The water counter does not depend on that library path;
   `src/counter/water_counter.cpp` owns its CRC-checked tmp+rename format.
 - Keep the healthcheck route `/healthcheck/healty` (upstream spelling) working;
   `/healthcheck/ready` is also registered by ed-healthcheck.
@@ -268,18 +282,24 @@ ones.
 
 ## 9. Validation / definition of done
 
-- `pio run -e kc868a2` and `pio run -e kc868a2_dev` complete cleanly. This is
-  the only offline gate; there are no host tests and no CI.
+- `pio run -e kc868a2` and `pio run -e kc868a2_dev` complete cleanly. There are
+  no host tests and no CI, so a clean firmware compilation and a passing
+  `npm --prefix frontend run build` are the offline gates.
 - Hardware behavior cannot be validated offline: valve polarity, WB-MCM8
   debounce/short-press handling, pulse counting, Modbus timing and the
   air-quality/motion thresholds need a real device.
+- For UI changes, `npm --prefix frontend run build` must pass (`tsc --noEmit`
+  then `vite build`). `data/` is generated by that build, and
+  `pio run -e kc868a2 -t buildfs` packs it into the exact-size LittleFS image
+  (`0x160000`, 1.41 MB) and fails on overflow, so it proves the SPA fits.
 - For API changes, check the exact pinned library headers in
-  `.pio/libdeps/kc868a2/` (ed-common is 0.5.1 there) and use the sibling
+  `.pio/libdeps/kc868a2/` (ed-common is 0.7.0 there) and use the sibling
   reference repositories `../alfred`, `../evelyn` and `../ed-common` for usage
-  examples. The sibling `ed-common` checkout may be older than 0.5.1, so prefer
+  examples. The sibling `ed-common` checkout may be older than 0.7.0, so prefer
   the resolved copy under `.pio/`.
-- Any `data/` change requires `pio run -e kc868a2 -t uploadfs`; mention the
-  config reset in the PR/commit note.
+- Any `data/` change requires `npm --prefix frontend run build` first, then
+  `pio run -e kc868a2 -t uploadfs`; mention the config reset in the PR/commit
+  note.
 
 ## 10. Known gaps
 
@@ -287,8 +307,8 @@ ones.
 - Firmware version in `src/defines.h` (`deviceFWVersion`) is maintained by hand.
 - No configuration backup/restore endpoint in this firmware; `uploadfs` resets
   everything.
-- Reboot persistence of `/light_state.bin` is fixed since ed-common 0.5.1; the
-  remaining boot-time physical reconciliation of the light is still handled by
-  the mismatch-adoption logic.
+- Reboot persistence of `/light_state.bin` is fixed since ed-common 0.5.1 (now
+  pinned at 0.7.0); the remaining boot-time physical reconciliation of the light
+  is still handled by the mismatch-adoption logic.
 - The UI still returns Wi-Fi and MQTT credentials in plaintext, matching the
   trusted-LAN model above.

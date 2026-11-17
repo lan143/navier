@@ -27,8 +27,11 @@ firmware updates can be installed over the air.
   and adopts manual changes.
 - **Exhaust fan** — a relay switches the drawing/exhaust fan on high air
   quality or humidity and off again when the air clears.
-- **Web UI** — a small static page served from LittleFS for Wi-Fi, MQTT,
-  Modbus and water-counter settings, plus uptime/diagnostics.
+- **Web UI** — a Preact single-page app served from LittleFS, built from
+  `frontend/`. Tabs for Status, Water, Modbus, MQTT and Wi-Fi cover
+  uptime/diagnostics and the Wi-Fi, MQTT, Modbus and water-counter settings.
+  Other entity state is not shown here; Home Assistant remains the state
+  consumer.
 - **Home Assistant** — every entity is announced through MQTT discovery.
 - **OTA updates** — ArduinoOTA with a password.
 
@@ -71,25 +74,38 @@ All four addresses and the bus speed are editable in the web UI.
 ## Getting started
 
 Prerequisites: PlatformIO (CLI or the VS Code extension) with the
-`espressif32` platform. The web UI is already checked in under `data/`; there is
-no frontend build step in this repository.
+`espressif32` platform, and Node.js/npm for building the web UI. The UI source
+lives in `frontend/`; its generated build output is the committed `data/`
+directory that `uploadfs` installs, so a UI build is only needed after changing
+`frontend/`.
+
+To build the web UI after a `frontend/` change:
+
+```bash
+npm --prefix frontend ci        # once; install from package-lock.json
+npm --prefix frontend run build # tsc --noEmit && vite build, writes data/
+```
 
 ### First flash over USB
 
 Connect the board over USB and run:
 
 ```bash
+npm --prefix frontend run build # regenerate data/ from frontend/
 pio run -e kc868a2 -t upload
 pio run -e kc868a2 -t uploadfs
 ```
 
-The second command is required: the web UI and all static assets live in
-LittleFS. Without `uploadfs` the browser page is missing or stale.
+The `npm` step is only needed after a `frontend/` change; the committed `data/`
+already matches the current source. The last command is required: the web UI and
+all static assets live in LittleFS. Without `uploadfs` the browser page is
+missing or stale. Commit the regenerated `data/` output together with the
+`frontend/` source change; `frontend/node_modules/` is gitignored.
 
 `uploadfs` rewrites the entire LittleFS partition. It erases the saved
 configuration (`/config.bin`), the water counter (`/water_counter.bin`) and the
 light automation state (`/light_state.bin`). Run it on first flash, after
-changing `data/`, or when you intentionally want a factory reset.
+regenerating `data/`, or when you intentionally want a factory reset.
 
 To compile without flashing:
 
@@ -101,16 +117,19 @@ pio run -e kc868a2
 
 On first boot the controller starts a Wi-Fi access point named
 `Navier_<MAC>`. Join it, open the controller's IP address in a browser, and use
-the **Settings** section:
+the tabs:
 
-- **WiFi Settings** — home network SSID and password.
-- **MQTT Settings** — broker host/port, login, password, topic prefix, Home
-  Assistant discovery prefix and the discovery on/off switch.
-- **Settings** — initial water-counter value in m³.
-- **modbus settings** — bus speed and the WB-MSW / WB-MCM8 / WB-LED 1 /
-  WB-LED 2 addresses.
+- **Wi-Fi** — home network SSID and password.
+- **MQTT** — broker host/port, login, password, topic prefix, Home Assistant
+  discovery prefix and the discovery on/off switch.
+- **Water** — current consumption and the initial water-counter value in m³.
+- **Modbus** — bus speed and the WB-MSW / WB-MCM8 / WB-LED 1 / WB-LED 2
+  addresses.
+- **Status** — Wi-Fi status, uptime, free heap, last reset reason and the
+  healthcheck state.
 
-Saving a form triggers a controller reboot from the web UI. After the reboot,
+Saving a form queues the change; the web UI then offers an explicit reboot so
+the queued write runs and the new settings take effect. After the reboot,
 connect through the home network and verify that the MQTT broker and Home
 Assistant discovery work.
 
@@ -140,12 +159,15 @@ The OTA environment targets the base `kc868a2` build.
 
 ## Web UI and API
 
-The web page has two top-level sections:
+The web page is a Preact single-page app with five tabs:
 
-- **Statistic** — Wi-Fi status, uptime, free heap and last reset reason,
-  refreshed every 10 seconds.
-- **Settings** — the Wi-Fi, MQTT, water-counter and Modbus forms described
-  above.
+- **Status** — Wi-Fi status, uptime, free heap and last reset reason, refreshed
+  every 10 seconds, plus the healthcheck state and an explicit reboot action.
+- **Water**, **Modbus**, **MQTT** and **Wi-Fi** — the forms described above.
+
+Other entity state (climate, leak and light entities) is not shown in the web
+UI: there is no firmware endpoint for it, so Home Assistant remains the state
+consumer.
 
 The firmware exposes these endpoints on port 80:
 
@@ -163,10 +185,10 @@ The firmware exposes these endpoints on port 80:
 
 Settings POSTs update the in-memory configuration and return `200` immediately;
 persistence is queued and runs on the next main-loop pass (`src/web/handler.cpp`,
-`src/main.cpp`). The web UI reboots the controller after saving, which lets the
-queued write run first. The raw storage files are not downloadable: the web root
-returns `404` for `/config.bin`, `/water_counter.bin`, `/light_state.bin` and
-`/data.tmp` before the static handler.
+`src/main.cpp`). The web UI shows a separate reboot action after saving so the
+queued write runs before the restart. The raw storage files are not downloadable:
+the web root returns `404` for `/config.bin`, `/water_counter.bin`,
+`/light_state.bin` and `/data.tmp` before the static handler.
 
 ## Home Assistant and MQTT
 
@@ -213,11 +235,12 @@ at the main light is adopted as a manual override after about 3 seconds; manual
 mode then ends 5 minutes after a manual switch-on or 10 minutes after the room
 becomes empty.
 
-Since ed-common 0.5.1 the automation state file `/light_state.bin` is restored
-into the live state on init, so night mode and brightness survive a reboot (the
-older 0.5.0 overwrote the file with defaults about 51 s after boot).
-Water-counter persistence is independent of that path and is handled
-by `src/counter/water_counter.cpp` with a CRC-checked temporary file and rename.
+Since ed-common 0.5.1 (currently pinned at 0.7.0) the automation state file
+`/light_state.bin` is restored into the live state on init, so night mode and
+brightness survive a reboot (the older 0.5.0 overwrote the file with defaults
+about 51 s after boot). Water-counter persistence is independent of that path
+and is handled by `src/counter/water_counter.cpp` with a CRC-checked temporary
+file and rename.
 
 ### Upgrading from pre-0.3.0 firmware
 
@@ -228,15 +251,22 @@ a breaking change for existing Home Assistant installations.
 To upgrade an existing controller manually:
 
 1. Flash the new firmware (USB or `pio run -e kc868a2_ota -t upload`).
-2. Upload the new filesystem with `pio run -e kc868a2 -t uploadfs` to install
-   the updated web UI. This erases the old configuration and state files.
+2. Build the web UI and install it with `uploadfs`; this erases the old
+   configuration and state files:
+
+   ```bash
+   npm --prefix frontend ci
+   npm --prefix frontend run build
+   pio run -e kc868a2 -t uploadfs
+   ```
+
 3. Reconfigure Wi-Fi, MQTT, Modbus and the initial water-counter value in the
    web UI.
 4. In Home Assistant, remove the old unavailable entities and let MQTT
    discovery add the new per-entity ones.
 
 The counter starts from zero after a filesystem upload; enter the previous total
-in the **Settings** form if you want to keep continuity.
+in the **Water** tab if you want to keep continuity.
 
 ## Diagnostics
 
@@ -246,7 +276,8 @@ in the **Settings** form if you want to keep continuity.
   speed and the device addresses in the web UI.
 - If the water counter does not advance, check the pulse meter wiring on GPIO36
   and the meter's pulse weight (the firmware assumes 10 L per pulse).
-- After changing anything under `data/`, re-upload the filesystem:
+- After changing anything under `frontend/`, rebuild the UI with
+  `npm --prefix frontend run build` and re-upload the filesystem:
   `pio run -e kc868a2 -t uploadfs`.
 
 ## Security
@@ -262,9 +293,10 @@ configuration and `platformio.ini`.
 ## Development
 
 The project builds with PlatformIO 6.x, the `espressif32` platform and the
-Arduino framework. The architecture, library pinning policy, MQTT contract and
-invariants are documented in `AGENTS.md`; command-output recipes are in
-`RTK.md`. There are no unit tests and no CI — `pio run -e kc868a2` and
-`pio run -e kc868a2_dev` are the offline checks.
+Arduino framework; the web UI builds with npm from `frontend/`. The
+architecture, library pinning policy, MQTT contract and invariants are
+documented in `AGENTS.md`; command-output recipes are in `RTK.md`. There are no
+unit tests and no CI — `pio run -e kc868a2`, `pio run -e kc868a2_dev` and
+`npm --prefix frontend run build` are the offline checks.
 
 License: MIT, © 2025 Kravchenko Artyom. See `LICENSE`.

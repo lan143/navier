@@ -1,0 +1,572 @@
+/* Design tokens ------------------------------------------------------------ */
+/* One accent per view. Depth comes from borders and a single sunken surface
+   tint, never from gradients or broad shadows. */
+
+:root {
+  /* Surfaces: page vs card surface vs nested/sunken section lists */
+  --bg: #f4f6f8;
+  --surface: #ffffff;
+  --sunken: #eef1f4;
+
+  --border: #d4dae0;
+  --border-strong: #b9c2cb;
+
+  /* Text */
+  --text: #1c2530;
+  --muted: #66727f;
+
+  /* Accent: active tab, primary buttons, links and focus */
+  --accent: #1668c1;
+  --accent-strong: #0f4c86;
+  --accent-soft: #eaf2fb;
+  --accent-contrast: #ffffff;
+
+  /* Status tints, harmonized with the accent */
+  --danger: #b42318;
+  --danger-strong: #961c12;
+  --danger-soft: #fdefed;
+  --danger-border: #efb9b3;
+
+  --success: #1b7a3d;
+  --success-soft: #ecf8f0;
+  --success-border: #b2dcbf;
+
+  --info: #0f4c86;
+  --info-soft: #eaf2fb;
+  --info-border: #b6d2ee;
+
+  --warning: #8a5a00;
+  --warning-soft: #fdf5e5;
+  --warning-border: #e8d29a;
+
+  /* Radius scale */
+  --radius-sm: 6px;
+  --radius: 8px;
+  --radius-pill: 999px;
+
+  /* Spacing step 4 / 8 / 12 / 16 */
+  --gap-xs: 4px;
+  --gap-sm: 8px;
+  --gap: 12px;
+  --gap-lg: 16px;
+
+  --tap: 44px;
+
+  /* Motion: compositor props only, feedback-sized */
+  --motion-fast: 140ms;
+  --ease-out: cubic-bezier(0.22, 0.61, 0.36, 1);
+
+  /* Technical strings: MQTT topics, slot numbers, channel numbers */
+  --font-mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas,
+    "Liberation Mono", monospace;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial,
+    sans-serif;
+  font-size: 16px;
+  line-height: 1.45;
+  -webkit-text-size-adjust: 100%;
+}
+
+#app {
+  max-width: 1260px;
+  margin: 0 auto;
+  padding: 0 0 env(safe-area-inset-bottom);
+}
+
+/* Focus: one consistent treatment for every interactive element ------------ */
+
+button:focus-visible,
+a:focus-visible,
+input:focus-visible,
+select:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+/* Header ------------------------------------------------------------------ */
+
+.app-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--gap);
+  padding: var(--gap) var(--gap-lg);
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: var(--gap-sm);
+  min-width: 0;
+}
+
+.app-header h1 {
+  margin: 0;
+  font-size: 1.4rem;
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+.app-header .hint {
+  font-size: 0.75rem;
+  color: var(--muted);
+  text-align: right;
+}
+
+/* Tab bar ----------------------------------------------------------------- */
+
+.tab-bar {
+  display: flex;
+  flex-wrap: nowrap;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  gap: var(--gap-xs);
+  padding: var(--gap-sm) var(--gap-sm) 0;
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+}
+
+.tab-bar button {
+  flex: 0 0 auto;
+  min-height: var(--tap);
+  padding: 0 var(--gap);
+  border: 0;
+  border-bottom: 2px solid transparent;
+  background: transparent;
+  color: var(--muted);
+  font: inherit;
+  font-weight: 600;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.tab-bar button:hover:not(.active) {
+  color: var(--text);
+  background: var(--sunken);
+}
+
+.tab-bar button.active {
+  color: var(--accent);
+  border-bottom-color: var(--accent);
+}
+
+.tab-content {
+  padding: var(--gap-lg);
+}
+
+/* Cards ------------------------------------------------------------------- */
+
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: var(--gap-lg);
+  margin-bottom: var(--gap);
+}
+
+.card h2,
+.card h3 {
+  margin-top: 0;
+}
+
+.card > h2 {
+  margin-bottom: var(--gap-sm);
+  font-size: 1.05rem;
+}
+
+.card > h3 {
+  margin-bottom: var(--gap-sm);
+}
+
+.card .muted,
+.muted {
+  color: var(--muted);
+  font-size: 0.875rem;
+}
+
+/* Forms ------------------------------------------------------------------- */
+
+.field {
+  display: block;
+  margin-bottom: var(--gap);
+}
+
+.field > label,
+.field > .field-label {
+  display: block;
+  margin-bottom: var(--gap-xs);
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.field input,
+.field select {
+  width: 100%;
+  min-height: var(--tap);
+  padding: 8px 10px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface);
+  color: inherit;
+  font: inherit;
+}
+
+.field input:focus-visible,
+.field select:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
+}
+
+.field input:disabled,
+.field select:disabled {
+  background: var(--sunken);
+  color: var(--muted);
+  cursor: not-allowed;
+}
+
+.field .field-error {
+  display: block;
+  margin-top: var(--gap-xs);
+  color: var(--danger);
+  font-size: 0.8rem;
+}
+
+.field .field-help {
+  display: block;
+  margin-top: var(--gap-xs);
+  color: var(--muted);
+  font-size: 0.8rem;
+}
+
+/* Password field with reveal toggle --------------------------------------- */
+
+.password-field {
+  display: flex;
+  align-items: flex-end;
+  gap: var(--gap-sm);
+  margin-bottom: var(--gap);
+}
+
+.password-field .field {
+  flex: 1 1 auto;
+  margin-bottom: 0;
+}
+
+.password-field .reveal-toggle {
+  flex: 0 0 auto;
+}
+
+/* Checkbox ---------------------------------------------------------------- */
+
+.checkbox-field {
+  margin-bottom: var(--gap);
+}
+
+.checkbox-label {
+  display: flex;
+  align-items: center;
+  gap: var(--gap-sm);
+  min-height: var(--tap);
+  font-weight: 600;
+}
+
+.checkbox-label input[type='checkbox'] {
+  width: 18px;
+  height: 18px;
+  margin: 0;
+}
+
+.checkbox-field .field-help {
+  display: block;
+  margin-top: var(--gap-xs);
+  margin-left: 26px;
+  color: var(--muted);
+  font-size: 0.8rem;
+}
+
+/* Buttons ----------------------------------------------------------------- */
+
+button.btn {
+  min-height: var(--tap);
+  padding: 0 var(--gap-lg);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius);
+  background: var(--surface);
+  color: var(--text);
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+button.btn:hover:not(:disabled) {
+  background: var(--sunken);
+  border-color: var(--border-strong);
+}
+
+button.btn:active:not(:disabled) {
+  transform: translateY(1px);
+}
+
+button.btn-primary {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: var(--accent-contrast);
+}
+
+button.btn-primary:hover:not(:disabled) {
+  background: var(--accent-strong);
+  border-color: var(--accent-strong);
+}
+
+button.btn-danger {
+  background: var(--danger);
+  border-color: var(--danger);
+  color: var(--accent-contrast);
+}
+
+button.btn-danger:hover:not(:disabled) {
+  background: var(--danger-strong);
+  border-color: var(--danger-strong);
+}
+
+button.btn:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+/* Banners / toasts -------------------------------------------------------- */
+
+.banner {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--gap);
+  padding: 10px 12px;
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  background: var(--surface);
+  margin-bottom: var(--gap);
+  font-size: 0.9rem;
+  animation: banner-in var(--motion-fast) var(--ease-out);
+}
+
+.banner-info {
+  border-color: var(--info-border);
+  background: var(--info-soft);
+  color: var(--info);
+}
+
+.banner-success {
+  border-color: var(--success-border);
+  background: var(--success-soft);
+  color: var(--success);
+}
+
+.banner-error {
+  border-color: var(--danger-border);
+  background: var(--danger-soft);
+  color: var(--danger);
+}
+
+.banner .banner-close {
+  flex: 0 0 auto;
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  font-size: 1.1rem;
+  line-height: 1;
+  cursor: pointer;
+  padding: 0 4px;
+  opacity: 0.75;
+}
+
+.banner .banner-close:hover,
+.banner .banner-close:focus-visible,
+.banner .banner-close:active {
+  opacity: 1;
+  background: rgba(0, 0, 0, 0.06);
+}
+
+@keyframes banner-in {
+  from {
+    opacity: 0;
+    transform: translateY(-2px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* utility ----------------------------------------------------------------- */
+
+.row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--gap);
+  align-items: center;
+}
+
+.stack > * + * {
+  margin-top: var(--gap);
+}
+
+.mt {
+  margin-top: var(--gap);
+}
+
+.form-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--gap);
+  margin-top: var(--gap);
+}
+
+.danger-zone {
+  border-color: var(--danger-border);
+}
+
+.danger-zone h3 {
+  color: var(--danger);
+}
+
+/* Key/value lists --------------------------------------------------------- */
+
+.kv {
+  display: grid;
+  grid-template-columns: minmax(120px, auto) 1fr;
+  gap: var(--gap-xs) var(--gap);
+  margin: 0;
+}
+
+.kv dt {
+  color: var(--muted);
+  font-size: 0.8rem;
+  padding-top: 1px;
+}
+
+.kv dd {
+  margin: 0;
+  font-family: var(--font-mono);
+  font-size: 0.85rem;
+  font-variant-numeric: tabular-nums;
+  word-break: break-word;
+}
+
+/* Reboot overlay ---------------------------------------------------------- */
+
+.reboot-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--gap-lg);
+  background: rgba(28, 37, 48, 0.55);
+}
+
+.reboot-dialog {
+  width: 100%;
+  max-width: 440px;
+  margin: 0;
+}
+
+/* Badges ------------------------------------------------------------------ */
+
+.badge {
+  display: inline-block;
+  padding: 1px 8px;
+  border-radius: var(--radius-pill);
+  border: 1px solid var(--border);
+  font-size: 0.75rem;
+  font-weight: 600;
+  line-height: 1.5;
+}
+
+.badge-on {
+  border-color: var(--success-border);
+  background: var(--success-soft);
+  color: var(--success);
+}
+
+.badge-off {
+  background: var(--bg);
+  color: var(--muted);
+}
+
+.badge-danger {
+  border-color: var(--danger-border);
+  background: var(--danger-soft);
+  color: var(--danger);
+}
+
+.badge-info {
+  border-color: var(--info-border);
+  background: var(--info-soft);
+  color: var(--info);
+}
+
+.hint {
+  color: var(--muted);
+  font-size: 0.875rem;
+}
+
+/* Meter reading ----------------------------------------------------------- */
+
+.meter {
+  display: flex;
+  align-items: baseline;
+  gap: var(--gap-sm);
+}
+
+.meter .meter-value {
+  font-size: 2rem;
+  font-weight: 700;
+  line-height: 1.1;
+  font-variant-numeric: tabular-nums;
+}
+
+.meter .meter-unit {
+  color: var(--muted);
+  font-size: 1rem;
+}
+
+.mono {
+  font-family: var(--font-mono);
+}
+
+/* Motion preferences ------------------------------------------------------ */
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+
+  button.btn:active:not(:disabled) {
+    transform: none;
+  }
+}

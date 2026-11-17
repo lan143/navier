@@ -1,0 +1,22 @@
+{
+  "name": "navier-frontend",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "description": "Navier leak protection and water metering controller web panel (Preact SPA built into ../data)",
+  "scripts": {
+    "dev": "vite",
+    "typecheck": "tsc --noEmit",
+    "build": "tsc --noEmit && vite build",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "preact": "^10.29.8"
+  },
+  "devDependencies": {
+    "@babel/core": "^7.28.0",
+    "@preact/preset-vite": "^2.10.6",
+    "typescript": "^5.9.3",
+    "vite": "^7.3.6"
+  }
+}
