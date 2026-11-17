@@ -1,6 +1,5 @@
 #include "lighting.h"
 
-#include <esp_log.h>
 #include <wirenboard.h>
 
 bool Lighting::init(
@@ -10,7 +9,8 @@ bool Lighting::init(
     EDMQTT::MQTT* mqtt,
     const char* topicPrefix,
     EDHA::DiscoveryMgr* discoveryMgr,
-    EDHA::Device* device
+    EDHA::Device* device,
+    EDCommon::BinarySensor::BinarySensor* wallSwitch
 ) {
     if (modbus == nullptr) {
         return false;
@@ -23,7 +23,8 @@ bool Lighting::init(
 
     result &= _main->init(1, 0, {
         EDCommon::Light::withMQTT(mqtt, topicPrefix, "navier", "Light"),
-        EDCommon::Light::withDiscovery(discoveryMgr, device)
+        EDCommon::Light::withDiscovery(discoveryMgr, device),
+        EDCommon::Light::withWallSwitch(wallSwitch, EDCommon::Light::WallSwitchType::Button)
     });
 
     result &= _backlight->init(0, {
@@ -58,30 +59,4 @@ void Lighting::update()
     if (_automation != nullptr) {
         _automation->update();
     }
-}
-
-void Lighting::toggleLight()
-{
-    if (_main == nullptr) {
-        return;
-    }
-
-    auto enabled = _main->isEnabled();
-    bool target;
-
-    if (enabled.second) {
-        _cachedEnabled = enabled.first;
-        _cacheValid = true;
-        target = !enabled.first;
-    } else if (_cacheValid) {
-        ESP_LOGW("lighting", "light state readback unavailable, toggling cached state");
-        target = !_cachedEnabled;
-    } else {
-        ESP_LOGW("lighting", "light state readback unavailable, defaulting to on");
-        target = true;
-    }
-
-    _main->setState(target);
-    _cachedEnabled = target;
-    _cacheValid = true;
 }

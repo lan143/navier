@@ -3,7 +3,6 @@
 #include <Arduino.h>
 #include <binary_sensor/binary_sensor.h>
 #include <device/wb_mcm8.h>
-#include <functional>
 
 class Mcm8Inputs
 {
@@ -18,7 +17,7 @@ public:
     );
     void update();
 
-    void onLightSwitchShortPress(std::function<void()> fn) { _onLightSwitchShortPress = fn; }
+    EDCommon::BinarySensor::BinarySensor* wallSwitchSensor() { return &_lightWallSwitch; }
 
 private:
     EDWB::MCM8* _mcm8 = nullptr;
@@ -28,9 +27,9 @@ private:
     EDCommon::BinarySensor::BinarySensor _waterLeakKitchen;
     EDCommon::BinarySensor::BinarySensor _toiletDoor;
     EDCommon::BinarySensor::BinarySensor _toiletManhole;
+    EDCommon::BinarySensor::BinarySensor _lightWallSwitch;
 
     bool _inited = false;
     unsigned long _lastPollTime = 0;
     int32_t _switchShortPressCount = 0;
-    std::function<void()> _onLightSwitchShortPress;
 };

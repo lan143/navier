@@ -80,9 +80,9 @@ no CI: a clean compilation is the minimum validation.
 | `src/defines.h` | Pin map, MCM8 channel map, controller/device metadata (`KC868-A2`, HW `1.1.0`, FW `0.3.0`) and `CONTROLLER_NAME` default `"Navier"`. |
 | `src/counter/water_counter.h`, `src/counter/water_counter.cpp` | `WaterCounter` (ed-common counter on `METER_PIN`) plus `WaterCounterPersistence` for `/water_counter.bin` (packed magic/value/lock record with CRC16, written via `.tmp` + rename). |
 | `src/sensors/msw_sensors.h`, `src/sensors/msw_sensors.cpp` | `MswSensors`: WB-MSW temperature, humidity and air quality; air quality uses `withKalmanFilter(50, 0.7f)`. |
-| `src/sensors/mcm8_inputs.h`, `src/sensors/mcm8_inputs.cpp` | `Mcm8Inputs`: three leak sensors, toilet door, toilet manhole (inverted) and the channel-7 light-switch short-press callback; all binary sensors poll every 200 ms. |
+| `src/sensors/mcm8_inputs.h`, `src/sensors/mcm8_inputs.cpp` | `Mcm8Inputs`: three leak sensors, toilet door, toilet manhole (inverted) plus the channel-7 light-switch short-press feed: the device-side press counter drives a private, never-published `BinarySensor` pulse exposed via `wallSwitchSensor()`; the five published binary sensors poll every 200 ms. |
 | `src/sensors/motion.h`, `src/sensors/motion.cpp` | `MotionDetector`: WB-MSW motion as a binary sensor, polling every 200 ms with the preserved `> 300 && < 4096` threshold. |
-| `src/light/lighting.h`, `src/light/lighting.cpp` | `Lighting`: `WBLedCCT` on WB-LED 1 (CCT channel 1), `WBLedRGBW` on WB-LED 2 and `EDCommon::Automation::Light` with night mode; `toggleLight()` is the local button action. |
+| `src/light/lighting.h`, `src/light/lighting.cpp` | `Lighting`: `WBLedCCT` on WB-LED 1 (CCT channel 1), `WBLedRGBW` on WB-LED 2 and `EDCommon::Automation::Light` with night mode; the local button is bound in ed-common via `Light::withWallSwitch(Button)` on the main light. |
 | `src/water/water_automation.h`, `src/water/water_automation.cpp` | `WaterAutomation`: closes the valve after more than 10 s of continuous leak. |
 | `src/water/drawing_automation.h`, `src/water/drawing_automation.cpp` | `DrawingAutomation`: exhaust fan on air quality >= 400 or humidity >= 80 for 10 s; off when air quality < 200 and humidity <= 60 for 10 s. |
 | `src/web/handler.h`, `src/web/handler.cpp` | `AsyncWebServer` on port 80: static LittleFS hosting, healthcheck routes and the `/api/*` endpoints. |
@@ -94,8 +94,8 @@ no CI: a clean compilation is the minimum validation.
 `setup()` order matters: serial → LittleFS → config defaults/load → `Serial2` +
 Modbus → network → OTA → MQTT + network callback → healthcheck registration →
 web handler → discovery + shared `EDHA::Device` → water/drawing relays → water
-counter → WB-MSW sensors → WB-MCM8 inputs → lighting → light-switch callback →
-water and drawing automations. `loop()` calls, in order: `networkMgr`,
+counter → WB-MSW sensors → WB-MCM8 inputs → lighting (wall switch bound during
+init) → water and drawing automations. `loop()` calls, in order: `networkMgr`,
 `discoveryMgr`, `modbus`, `waterRelay.update`, `drawingRelay.update`,
 `waterCounter.update`, `mswSensors->update`, `mcm8Inputs->update`,
 `lighting->update`, `waterAutomation->loop`, `drawingAutomation->loop`,
@@ -240,9 +240,15 @@ ones.
   deliberate manual action.
 - The drawing automation only acts when both air-quality and humidity readings
   are valid; it uses 1 s checks and a 10-count (10 s) delay on both edges.
-- WB-MCM8 channel 7 is configured as a button input (`setInputMode(7, 1)`) with
-  100 ms debounce; a short-press increment toggles the main light. Channels 4 and
-  5 are inverted in software during `update()`.
+- WB-MCM8 channel 7 stays a button input (`setInputMode(7, 1)`, 100 ms debounce)
+  and `Mcm8Inputs` still detects short presses from the device counter on its
+  200 ms poll, but the toggle now happens inside ed-common 0.7.0
+  `Light::updateWallSwitch()` via `withWallSwitch(..., WallSwitchType::Button)`:
+  one press = one 200 ms pulse = one rising-edge toggle; no action on boot; the
+  first press is refused while WB-LED readback is unavailable and the
+  desired-state cache is unprimed (the pre-0.7.0 code defaulted to ON); channel 7
+  publishes no MQTT/HA entity. Channels 4 and 5 are inverted in software during
+  `update()`.
 - The motion threshold `> 300 && < 4096` is inherited from the pre-migration
   firmware; do not "simplify" it without hardware context.
 - The water counter reads `METER_PIN` GPIO36 and persists a packed

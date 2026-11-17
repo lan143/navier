@@ -26,6 +26,8 @@ bool Mcm8Inputs::init(
 
     bool result = true;
 
+    result &= _lightWallSwitch.init(0, {});
+
     result &= _waterLeakToilet.init(200, {
         EDCommon::BinarySensor::withMQTT(mqtt, topicPrefix, "navier", "Water leak toilet"),
         EDCommon::BinarySensor::withDiscovery(discoveryMgr, device),
@@ -80,12 +82,8 @@ void Mcm8Inputs::update()
         _toiletManhole.setValue(!_mcm8->getInputState(WB_MCM8_CHANNEL_TOILET_MANHOLE));
 
         int32_t shortPressCount = _mcm8->getShortPressCount(WB_MCM8_CHANNEL_LIGHT_SWITCH);
-        if (shortPressCount >= 0 && ((_switchShortPressCount + 1) == shortPressCount)) {
-            if (_onLightSwitchShortPress) {
-                _onLightSwitchShortPress();
-            }
-        }
-
+        bool pressed = shortPressCount >= 0 && ((_switchShortPressCount + 1) == shortPressCount);
+        _lightWallSwitch.setValue(pressed);
         _switchShortPressCount = shortPressCount;
     }
 

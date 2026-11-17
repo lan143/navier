@@ -2,6 +2,7 @@
 
 #include <Arduino.h>
 #include <automation/light.h>
+#include <binary_sensor/binary_sensor.h>
 #include <discovery.h>
 #include <light/wb_led_cct.h>
 #include <light/wb_led_rgbw.h>
@@ -26,16 +27,14 @@ public:
         EDMQTT::MQTT* mqtt,
         const char* topicPrefix,
         EDHA::DiscoveryMgr* discoveryMgr,
-        EDHA::Device* device
+        EDHA::Device* device,
+        EDCommon::BinarySensor::BinarySensor* wallSwitch
     );
     void update();
-    void toggleLight();
 
 private:
     MotionDetector _motion;
     EDCommon::Light::WBLedCCT* _main = nullptr;
     EDCommon::Light::WBLedRGBW* _backlight = nullptr;
     EDCommon::Automation::Light* _automation = nullptr;
-    bool _cachedEnabled = false;
-    bool _cacheValid = false;
 };

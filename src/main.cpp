@@ -168,16 +168,11 @@ void setup()
             &mqtt,
             topicPrefix,
             &discoveryMgr,
-            device
+            device,
+            mcm8Inputs->wallSwitchSensor()
         )) {
         ESP_LOGE("setup", "failed to init lighting");
     }
-
-    mcm8Inputs->onLightSwitchShortPress([]() {
-        if (lighting != nullptr) {
-            lighting->toggleLight();
-        }
-    });
 
     waterAutomation = new WaterAutomation(&waterRelay, mcm8);
     drawingAutomation = new DrawingAutomation(
